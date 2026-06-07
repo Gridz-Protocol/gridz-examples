@@ -9,7 +9,10 @@ export default function Home() {
   return (
     <main style={{ padding: 24, maxWidth: 480, margin: "0 auto" }}>
       <h1>Gridz</h1>
-      <p>Enter an ENS name (e.g. <code>kevin.gridz.eth</code>) or a DID to render its profile.</p>
+      <p>
+        Enter an ENS subname (e.g. <code>bot.gridz.eth</code>) or a DID. Entities register as{" "}
+        <code>&lt;alias&gt;.gridz.eth</code>.
+      </p>
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -19,7 +22,7 @@ export default function Home() {
         <input
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
-          placeholder="kevin.gridz.eth"
+          placeholder="bot.gridz.eth"
           style={{ width: "100%", padding: 10 }}
         />
         <button type="submit" style={{ marginTop: 10, padding: "8px 16px" }}>Render</button>

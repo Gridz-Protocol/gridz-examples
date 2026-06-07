@@ -1,39 +1,35 @@
-import { createPublicClient, http, namehash } from "viem";
-import { mainnet } from "viem/chains";
-import { EnsSink, ViemEnsBackend, postgresSink, type Sink } from "@gridz/sinks";
 import type { Grid } from "@gridz/core";
+import { EnsSink, type EnsBackend } from "@gridz/sinks";
+import { createPublicClient, http, type Chain } from "viem";
+import { mainnet, sepolia } from "viem/chains";
+import { isEnsSubject } from "./ensNames";
 
-/**
- * Resolve a Grid for a subject (an ENS name like kevin.gridz.eth, or a DID).
- * ENS first (via the GridzResolver), Postgres as a fallback cache. No subject is
- * hard-coded; the value comes from the route.
- */
+class ReadOnlyEnsBackend implements EnsBackend {
+  constructor(
+    private readonly client: {
+      getEnsText(args: { name: string; key: string }): Promise<string | null>;
+    },
+  ) {}
+
+  async getText(name: string, key: string): Promise<string | null> {
+    return this.client.getEnsText({ name, key });
+  }
+
+  async setText(): Promise<{ txHash: string }> {
+    throw new Error("read-only ENS backend");
+  }
+}
+
+function chainForId(chainId: number): Chain {
+  return chainId === 11155111 ? sepolia : mainnet;
+}
+
 export async function loadGrid(subject: string): Promise<Grid | null> {
-  if (subject.endsWith(".eth")) {
-    const publicClient = createPublicClient({
-      chain: mainnet,
-      transport: http(process.env.GRIDZ_RPC_URL),
-    });
-    const backend = new ViemEnsBackend({
-      publicClient: { getEnsText: (a) => publicClient.getEnsText(a) },
-      walletClient: { writeContract: async () => "0x" as `0x${string}` }, // read-only here
-      resolverAddress: (process.env.GRIDZ_RESOLVER ?? "0x") as `0x${string}`,
-      resolverAbi: [],
-      namehash,
-    });
-    const grid = await new EnsSink(backend, subject).readGrid();
-    if (grid) return grid;
-  }
+  if (!isEnsSubject(subject)) return null;
 
-  const dsn = process.env.GRIDZ_PG_DSN;
-  if (dsn) {
-    const sink: Sink = postgresSink(dsn);
-    const cells = await sink.read({ subject });
-    if (cells.length) {
-      // A cache hit returns cells; the canonical grid (theme/root) still lives at
-      // the source. For a full render, persist the whole grid in your projection.
-      return null;
-    }
-  }
-  return null;
+  const rpc = process.env.GRIDZ_RPC_URL ?? "https://ethereum.publicnode.com";
+  const chainId = Number(process.env.GRIDZ_CHAIN_ID ?? "1");
+  const client = createPublicClient({ chain: chainForId(chainId), transport: http(rpc) });
+  const sink = new EnsSink(new ReadOnlyEnsBackend(client), subject);
+  return sink.readGrid();
 }
