@@ -52,9 +52,11 @@ export default function ConceptsPage() {
 
       <h2>Sink</h2>
       <p>
-        A place a signed Grid gets <em>projected</em> to — ENS, SQLite, Postgres, S3, etc. For
-        gridz.bio users the sink is <strong>ENS on Base</strong>, backed by the
-        GridzResolver and EAS. Sinks make data easy to query; they don&apos;t replace signatures.
+        A place a signed Grid gets <em>projected</em> to — ENS, SQLite, Postgres, Neo4j (knowledge
+        graph), S3, etc. For gridz.bio users the sink is <strong>ENS on Base</strong>, backed by the
+        GridzResolver and EAS. Sinks make data easy to query; they don&apos;t replace signatures. The
+        same Grid can also live in a database or graph for analytics and agent discovery — see{" "}
+        <a href="/docs/spec/sinks">Sinks &amp; projections</a> in the spec.
       </p>
 
       <h2>gridz.eth and gridz.bio</h2>

@@ -9,6 +9,7 @@ const SPEC_NAV = [
   { href: "/docs/spec/keys", label: "Standard keys" },
   { href: "/docs/spec/canonicalization", label: "Canonicalization" },
   { href: "/docs/spec/attestations", label: "Attestations" },
+  { href: "/docs/spec/sinks", label: "Sinks" },
   { href: "/docs/spec/on-chain", label: "On-chain (Base)" },
 ];
 

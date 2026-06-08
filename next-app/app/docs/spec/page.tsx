@@ -41,21 +41,24 @@ export default function SpecOverviewPage() {
 
       <h2>Architecture at a glance</h2>
       <pre>{`┌─────────────────────────────────────────────────────────────┐
-│  Grid (gridz/1.0.0)                                         │
-│  ┌──────────┐  ┌───────┐  ┌──────────────────────────────┐  │
-│  │ subject  │  │ theme │  │ cells[]                       │  │
-│  │ (DID,    │  │       │  │  key + value + layout         │  │
-│  │  ENS…)   │  │       │  │  └── attestation (per cell)   │  │
-│  └──────────┘  └───────┘  └──────────────────────────────┘  │
-│  root_attestation ──► merkle root over cell attestation UIDs  │
-└─────────────────────────────────────────────────────────────┘
-         │ publish                          │ read / verify
-         ▼                                  ▼
-   EIP-712 sign (wallet)              @gridz/core verifyGrid()
-         │                                  │
-         ▼                                  ▼
-   EAS attest on Base              Recompute JCS hashes + check
-   GridzResolver.setCell…          signatures + EAS on-chain`}</pre>
+│  Grid (gridz/1.0.0)  ◄── signed attestations = source of truth │
+│  subject · theme · cells[] · root_attestation                  │
+└───────────────────────────────┬─────────────────────────────┘
+                                │ publish (projections, not authority)
+        ┌───────────────────────┼───────────────────────┐
+        ▼                       ▼                       ▼
+  gridz.bio / API         Postgres / SQLite          Neo4j graph
+  (HTML + JSON)           (relational index)         (traversal / agents)
+        │                       │                       │
+        └───────────────────────┴───────────────────────┘
+                                │ read → assemble Grid
+                                ▼
+                    verifyGrid() — hashes + signatures`}</pre>
+      <p>
+        gridz.bio is one output format, not the only one. The same signed Grid can project to
+        databases, knowledge graphs, object stores, or plain JSON files. See{" "}
+        <Link href="/docs/spec/sinks">Sinks &amp; projections</Link>.
+      </p>
 
       <h2>Normative documents (repo)</h2>
       <p>
@@ -153,6 +156,10 @@ export default function SpecOverviewPage() {
         <li>
           <Link href="/docs/spec/attestations">Attestations</Link> — envelope formats, EIP-712,
           EAS schemas
+        </li>
+        <li>
+          <Link href="/docs/spec/sinks">Sinks &amp; projections</Link> — databases, knowledge graphs,
+          APIs, and other outputs
         </li>
         <li>
           <Link href="/docs/spec/on-chain">On-chain (Base)</Link> — production contracts, publish
