@@ -19,7 +19,7 @@ describe("PublishProgress", () => {
   it("shows publishing progress and ETA", () => {
     render(<PublishProgress phase="publishing" ensName="alice.eth" cellCount={5} />);
     expect(screen.getByText("Publishing to Ethereum")).toBeTruthy();
-    expect(screen.getByText(/On-chain publish/)).toBeTruthy();
+    expect(screen.getByText(/Confirm ~10 Ethereum transactions/)).toBeTruthy();
   });
 
   it("shows success with profile link", () => {

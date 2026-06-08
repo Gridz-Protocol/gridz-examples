@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 // Six mainnet txs (EAS attest + resolver link per cell) can take 1–2 minutes.
 export const maxDuration = 300;
 import type { Grid, Hex } from "@gridz/core";
-import { createPublicClient, createWalletClient, getAddress, http, parseEther } from "viem";
+import { createPublicClient, createWalletClient, getAddress, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { mainnet, sepolia } from "viem/chains";
 import { publishGridViaEas } from "../../../lib/publishEas";
@@ -61,22 +61,6 @@ export async function POST(request: Request) {
     const publicClient = createPublicClient({ chain, transport: http(rpc) });
     const walletClient = createWalletClient({ account, chain, transport: http(rpc) });
 
-    const balance = await publicClient.getBalance({ address: account.address });
-    const cellCount = grid.cells.length;
-    // ~2 registrar txs per changed cell (EAS attest + resolver link); keep headroom for gas spikes.
-    const minWei = parseEther("0.002") + BigInt(cellCount) * parseEther("0.0004");
-    if (balance < minWei) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error:
-            `Registrar wallet is low on ETH (${(Number(balance) / 1e18).toFixed(4)} ETH). ` +
-            `Publishing ${cellCount} field(s) needs more mainnet gas — contact the gridz.bio operator to top up the registrar.`,
-        },
-        { status: 503 },
-      );
-    }
-
     const chainBaseline = await loadGrid(ensName);
     const { txCount, publishedCellCount, skippedCellCount } = await publishGridViaEas(grid, ensName, {
       easAddress,
@@ -85,6 +69,7 @@ export async function POST(request: Request) {
       publicClient,
       walletClient,
       chainBaseline,
+      mode: "registrar",
     });
 
     return NextResponse.json({ ok: true, txCount, publishedCellCount, skippedCellCount });

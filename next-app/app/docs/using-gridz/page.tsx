@@ -66,8 +66,8 @@ export default function UsingGridzPage() {
         </li>
         <li>
           <strong>Sign &amp; publish to ENS</strong> — your wallet signs only <em>changed</em> cells plus
-          the grid root (unchanged fields reuse prior attestations). Then the server writes EAS
-          attestations on Ethereum and links each field on GridzResolver. When done, you&apos;ll
+          the grid root (unchanged fields reuse prior attestations), then sends EAS attestations and
+          resolver links on Ethereum (you pay gas, ~2 txs per changed field). When done, you&apos;ll
           see an <strong>On-chain</strong> badge and your profile is public everywhere.
         </li>
       </ul>

@@ -98,6 +98,7 @@ async function main() {
     resolverAddress: resolver,
     publicClient,
     walletClient: registrarClient,
+    mode: "registrar",
   });
 
   console.log(`✓ Published ${uids.length} cells (${txCount} txs) → ${ensName}`);

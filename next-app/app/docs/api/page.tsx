@@ -78,10 +78,9 @@ GET https://${bio}/api/profile/kevin.gridz.eth`}</code>
           attestations.
         </li>
         <li>
-          <strong>Server attests</strong> — <code>POST /api/publish</code> takes your signed Grid,
-          writes new EAS attestations for changed cells, then calls GridzResolver{" "}
-          <code>setCellAttestation</code> directly (one registrar tx per field). Uses a registrar key
-          on the server; you do not sign those transactions.
+          <strong>Your wallet publishes</strong> — after EIP-712 signing, your wallet sends EAS{" "}
+          <code>attest</code> and GridzResolver <code>linkCellAttestation</code> transactions (you pay
+          gas). <code>POST /api/publish</code> remains for operator/demo flows using a registrar key only.
         </li>
         <li>
           <strong>Public read</strong> — this API and profile pages read attestations back from the
@@ -90,8 +89,8 @@ GET https://${bio}/api/profile/kevin.gridz.eth`}</code>
         </li>
       </ol>
       <p>
-        <code>POST /api/publish</code> is called by the gridz.bio editor, not meant for arbitrary
-        third-party writes. To publish programmatically, use the <a href="/docs/cli">CLI</a> or{" "}
+        <code>POST /api/publish</code> is registrar-only (demo script); the gridz.bio editor publishes
+        from the browser. To publish programmatically, use the <a href="/docs/cli">CLI</a> or{" "}
         <code>@gridz/sdk</code> with your own signer and sink.
       </p>
 

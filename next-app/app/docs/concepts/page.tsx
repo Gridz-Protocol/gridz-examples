@@ -88,7 +88,7 @@ export default function ConceptsPage() {
       <h2>No custodied keys</h2>
       <p>
         Gridz (the framework and gridz.bio) never holds your private key. You sign with your wallet,
-        the CLI with your local key, or an agent with 1Claw HSM. The server registrar on gridz.bio
+        the CLI with your local key, or an agent with 1Claw HSM. The gridz.bio editor uses your wallet
         only submits <em>its own</em> transactions to link your already-signed attestations on-chain
         — it cannot impersonate you.
       </p>

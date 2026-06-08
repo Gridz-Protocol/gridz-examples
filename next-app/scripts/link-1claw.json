@@ -1,0 +1,8 @@
+[
+  { "key": "alias", "uid": "0xb0628977e90ba579304168aa11909c5bc6b9a39fc9a03b8ad67530fb3cfe24e8" },
+  { "key": "avatar", "uid": "0x88a997d0aac098019ee37dbc174d2c60a7e13224e97d666bdd5271f73fab9c5f" },
+  { "key": "url", "uid": "0xa092bd3cbf420ac270e2e39fc8f5872ce798153991f1488b279470b462fccf02" },
+  { "key": "com.twitter", "uid": "0x7e9cb83a6030cf087523dec0ac897553535372f7a9c1d0e9de09d7f7f95523be" },
+  { "key": "com.github", "uid": "0x969f2e101ab57c08d11a59ed287be6b202bdc21b0f991dbb2f53244b66c15e6f" },
+  { "key": "gridz.keys", "uid": "0x2083eaec878e3ac3debc7b2bc9e7374666b85eaaff77d155c57368fdc57e9449" }
+]

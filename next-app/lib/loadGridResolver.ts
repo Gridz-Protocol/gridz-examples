@@ -62,6 +62,53 @@ const RESOLVER_ABI = [
   },
 ] as const;
 
+
+const EAS_ADDRESS = (process.env.EAS_ADDRESS ?? "") as Hex;
+const GRIDZ_CHAIN_ID = Number(process.env.GRIDZ_CHAIN_ID ?? "1");
+
+const EAS_ABI = [
+  {
+    name: "getAttestation",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ name: "uid", type: "bytes32" }],
+    outputs: [
+      {
+        type: "tuple",
+        components: [
+          { name: "uid", type: "bytes32" },
+          { name: "schema", type: "bytes32" },
+          { name: "time", type: "uint64" },
+          { name: "expirationTime", type: "uint64" },
+          { name: "revocationTime", type: "uint64" },
+          { name: "refUID", type: "bytes32" },
+          { name: "recipient", type: "address" },
+          { name: "attester", type: "address" },
+          { name: "revocable", type: "bool" },
+          { name: "data", type: "bytes" },
+        ],
+      },
+    ],
+  },
+] as const;
+
+async function easAttesterDid(client: PublicClient, uid: Hex): Promise<string | null> {
+  if (!EAS_ADDRESS.startsWith("0x") || uid === ZERO_UID) return null;
+  try {
+    const att = await client.readContract({
+      address: EAS_ADDRESS,
+      abi: EAS_ABI,
+      functionName: "getAttestation",
+      args: [uid],
+    });
+    const addr = att.attester as string;
+    if (!addr || addr === "0x0000000000000000000000000000000000000000") return null;
+    return `did:pkh:eip155:${GRIDZ_CHAIN_ID}:${addr.toLowerCase()}`;
+  } catch {
+    return null;
+  }
+}
+
 const ZERO_UID = `0x${"0".repeat(64)}` as Hex;
 
 function defaultPosition(i: number) {
@@ -151,7 +198,7 @@ export async function loadGridFromResolver(
         format,
         uid,
         uri: uid === ZERO_UID ? `ens://${subject}/${key}` : `eas://${uid}`,
-        attester: subject,
+        attester: (await easAttesterDid(client, uid)) ?? subject,
         iat: "1970-01-01T00:00:00.000Z",
         value_hash: valueHash(algo, parsed),
       },

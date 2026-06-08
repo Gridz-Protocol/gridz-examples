@@ -42,7 +42,7 @@ const EAS_ABI = [
   },
 ] as const;
 
-const RESOLVER_ABI = [
+const RESOLVER_REGISTRAR_ABI = [
   {
     name: "setCellAttestation",
     type: "function",
@@ -56,7 +56,24 @@ const RESOLVER_ABI = [
   },
 ] as const;
 
+const RESOLVER_OWNER_ABI = [
+  {
+    name: "linkCellAttestation",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "node", type: "bytes32" },
+      { name: "key", type: "string" },
+      { name: "uid", type: "bytes32" },
+    ],
+    outputs: [],
+  },
+] as const;
+
 const ZERO_HASH = `0x${"0".repeat(64)}` as Hex;
+
+/** `owner` — wallet attests on EAS and links via linkCellAttestation (user gas). */
+export type PublishGasMode = "owner" | "registrar";
 
 function chainValueHash(cell: Cell): Hex | null {
   const raw = cell.attestation?.value_hash;
@@ -67,7 +84,7 @@ function chainValueHash(cell: Cell): Hex | null {
   return raw;
 }
 
-function shouldPublishCell(cell: Cell, chainBaseline: Grid | null | undefined): boolean {
+export function shouldPublishCell(cell: Cell, chainBaseline: Grid | null | undefined): boolean {
   if (!chainBaseline) return true;
   const onChain = chainBaseline.cells.find((c) => c.key === cell.key);
   if (!onChain) return true;
@@ -117,25 +134,26 @@ function encodeCellAttestationData(fields: ReturnType<typeof easFieldsFromCell>)
 
 export type CellPublishResult = { key: string; uid: Hex };
 
-async function attestCells(
+export async function attestCells(
   ordered: Cell[],
   opts: {
     easAddress: Hex;
     cellSchema: Hex;
     publicClient: PublicClient;
     walletClient: WalletClient;
+    onProgress?: (index: number, total: number, key: string) => void;
   },
 ): Promise<CellPublishResult[]> {
-  const { easAddress, cellSchema, publicClient, walletClient } = opts;
+  const { easAddress, cellSchema, publicClient, walletClient, onProgress } = opts;
   const account = walletClient.account;
-  if (!account) throw new Error("Registrar wallet account required");
+  if (!account) throw new Error("Wallet account required");
   const eas = getAddress(easAddress);
   const zero = getAddress("0x0000000000000000000000000000000000000000");
   const results: CellPublishResult[] = [];
 
   for (let i = 0; i < ordered.length; i++) {
     const cell = ordered[i]!;
-    console.log(`[publish] attest ${i + 1}/${ordered.length} ${cell.key}…`);
+    onProgress?.(i + 1, ordered.length, cell.key);
     const fields = easFieldsFromCell(cell);
     const encoded = encodeCellAttestationData(fields);
     const request = {
@@ -170,40 +188,40 @@ async function attestCells(
   return results;
 }
 
-/**
- * Link EAS UIDs on GridzResolver. Calls are sent directly from the registrar — not via
- * Multicall3, because setCellAttestation is onlyRole(REGISTRAR) on msg.sender.
- */
-async function linkCells(
+export async function linkCells(
   attestations: CellPublishResult[],
   opts: {
     resolverAddress: Hex;
     node: `0x${string}`;
     publicClient: PublicClient;
     walletClient: WalletClient;
+    mode?: PublishGasMode;
+    onProgress?: (index: number, total: number, key: string) => void;
   },
 ): Promise<number> {
-  const { resolverAddress, node, publicClient, walletClient } = opts;
+  const { resolverAddress, node, publicClient, walletClient, mode = "owner", onProgress } = opts;
   const account = walletClient.account;
-  if (!account) throw new Error("Registrar wallet account required");
+  if (!account) throw new Error("Wallet account required");
   const resolver = getAddress(resolverAddress);
+  const ownerMode = mode === "owner";
   let linkTxCount = 0;
 
   for (let i = 0; i < attestations.length; i++) {
     const { key, uid } = attestations[i]!;
-    console.log(`[publish] link ${i + 1}/${attestations.length} ${key}…`);
+    onProgress?.(i + 1, attestations.length, key);
     const hash = await walletClient.writeContract({
       account,
       chain: walletClient.chain,
       address: resolver,
-      abi: RESOLVER_ABI,
-      functionName: "setCellAttestation",
+      abi: ownerMode ? RESOLVER_OWNER_ABI : RESOLVER_REGISTRAR_ABI,
+      functionName: ownerMode ? "linkCellAttestation" : "setCellAttestation",
       args: [node, key, uid],
     });
     const receipt = await publicClient.waitForTransactionReceipt({ hash, timeout: 600_000 });
     if (receipt.status !== "success") {
+      const fn = ownerMode ? "linkCellAttestation" : "setCellAttestation";
       throw new Error(
-        `setCellAttestation for ${key} reverted (tx ${hash}). ` +
+        `${fn} for ${key} reverted (tx ${hash}). ` +
           `EAS uid ${uid} was attested but not linked — retry publish or link manually.`,
       );
     }
@@ -211,6 +229,16 @@ async function linkCells(
   }
 
   return linkTxCount;
+}
+
+export function cellsToPublish(grid: Grid, chainBaseline?: Grid | null): Cell[] {
+  return [...grid.cells]
+    .filter((cell) => shouldPublishCell(cell, chainBaseline))
+    .sort((a, b) => {
+      if (a.key === "gridz.keys") return 1;
+      if (b.key === "gridz.keys") return -1;
+      return 0;
+    });
 }
 
 export async function publishGridViaEas(
@@ -223,31 +251,33 @@ export async function publishGridViaEas(
     publicClient: PublicClient;
     walletClient: WalletClient;
     chainBaseline?: Grid | null;
+    mode?: PublishGasMode;
+    onProgress?: (step: "attest" | "link", index: number, total: number, key: string) => void;
   },
 ): Promise<{ txCount: number; uids: Hex[]; publishedCellCount: number; skippedCellCount: number }> {
-  const { easAddress, cellSchema, resolverAddress, publicClient, walletClient } = opts;
+  const { easAddress, cellSchema, resolverAddress, publicClient, walletClient, mode = "owner" } = opts;
   const node = namehash(ensName);
 
-  const chainBaseline = opts.chainBaseline;
-  const ordered = [...grid.cells]
-    .filter((cell) => shouldPublishCell(cell, chainBaseline))
-    .sort((a, b) => {
-      if (a.key === "gridz.keys") return 1;
-      if (b.key === "gridz.keys") return -1;
-      return 0;
-    });
-
+  const ordered = cellsToPublish(grid, opts.chainBaseline);
   const skippedCellCount = grid.cells.length - ordered.length;
   if (ordered.length === 0) {
     return { txCount: 0, uids: [], publishedCellCount: 0, skippedCellCount };
   }
 
-  const attestations = await attestCells(ordered, { easAddress, cellSchema, publicClient, walletClient });
+  const attestations = await attestCells(ordered, {
+    easAddress,
+    cellSchema,
+    publicClient,
+    walletClient,
+    onProgress: (i, t, k) => opts.onProgress?.("attest", i, t, k),
+  });
   const linkTxCount = await linkCells(attestations, {
     resolverAddress,
     node,
     publicClient,
     walletClient,
+    mode,
+    onProgress: (i, t, k) => opts.onProgress?.("link", i, t, k),
   });
 
   const uids = attestations.map((a) => a.uid);

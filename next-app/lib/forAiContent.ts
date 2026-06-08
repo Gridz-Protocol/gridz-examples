@@ -219,7 +219,7 @@ report = verify_grid(grid)
    - \`EnsSink.writeGrid(grid)\` (\`@gridz/sinks\`)
    - Self-hosted \`@gridz/server\` PUT endpoints
 
-Human gridz.bio flow: wallet signs in browser → editor POSTs signed grid to registrar.
+Human gridz.bio flow: wallet signs EIP-712 in browser → wallet sends EAS attest + resolver linkCellAttestation (user gas).
 
 ## Agent identity cells
 
@@ -290,7 +290,7 @@ Monorepo: ${FOR_AI_LINKS.github} · TS: ${FOR_AI_LINKS.githubJs} · Py: ${FOR_AI
 - Treat \`POST /api/publish\` as editor-only unless you operate the registrar
 - \`ok: false\` from profile API means on-chain empty — not a bug
 - Browser **Draft** profiles are localStorage only; API won't see them
-- gridz.bio editor: **Save draft** (unsigned localStorage) → **Sign & publish** (incremental EIP-712 + EAS). Unclaimed names stay editable until on-chain publish.
+- gridz.bio editor: **Save draft** (unsigned localStorage) → **Sign & publish** (EIP-712 + user-paid EAS/link txs). Unclaimed names stay editable until on-chain publish.
 - Widget keys are \`gridz.*\`; social keys use reverse-dot (\`com.github\`)
 
 ## Further reading

@@ -1,12 +1,10 @@
-/** ~14s per on-chain tx. Attests are sequential; resolver links batch via multicall. */
+/** ~14s per on-chain tx (EAS attest + resolver link, both from user wallet). */
 const MS_PER_TX = 14_000;
-const LINK_BATCH_SIZE = 40;
 
 export function estimatePublishTxCount(cellCount: number): number {
   const n = Math.max(cellCount, 0);
   if (n === 0) return 0;
-  const linkBatches = Math.ceil(n / LINK_BATCH_SIZE);
-  return n + linkBatches;
+  return n * 2;
 }
 
 export function estimatePublishMs(cellCount: number): number {

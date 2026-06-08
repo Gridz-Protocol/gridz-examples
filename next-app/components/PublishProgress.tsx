@@ -102,8 +102,9 @@ export function PublishProgress({
             <div>
               <p className="publish-progress__title">Publishing to Ethereum</p>
               <p className="publish-progress__sub">
-                On-chain publish — {cellCount} EAS attest{cellCount === 1 ? "" : "s"}, then resolver
-                links (one tx per field). Unchanged fields are skipped. Keep this tab open.
+                Confirm ~{cellCount * 2} Ethereum transaction{cellCount * 2 === 1 ? "" : "s"} in your wallet
+                ({cellCount} EAS attest{cellCount === 1 ? "" : "s"} + {cellCount} resolver link
+                {cellCount === 1 ? "" : "s"}). You pay gas. Keep this tab open.
               </p>
             </div>
           </div>
