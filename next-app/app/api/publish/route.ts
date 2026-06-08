@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
+
+// Six mainnet txs (EAS attest + resolver link per cell) can take 1–2 minutes.
+export const maxDuration = 300;
 import type { Grid, Hex } from "@gridz/core";
-import { createPublicClient, createWalletClient, http } from "viem";
+import { createPublicClient, createWalletClient, getAddress, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { mainnet, sepolia } from "viem/chains";
 import { publishGridViaEas } from "../../../lib/publishEas";
@@ -11,9 +14,17 @@ function chainForId(chainId: number) {
 
 export async function POST(request: Request) {
   const registrarKey = process.env.REGISTRAR_PRIVATE_KEY ?? process.env.DEPLOYER_PRIVATE_KEY;
-  const resolver = process.env.GRIDZ_RESOLVER as Hex | undefined;
-  const easAddress = process.env.EAS_ADDRESS as Hex | undefined;
+  const resolverRaw = process.env.GRIDZ_RESOLVER as Hex | undefined;
+  const easRaw = process.env.EAS_ADDRESS as Hex | undefined;
   const cellSchema = process.env.CELL_SCHEMA as Hex | undefined;
+  let resolver: Hex | undefined;
+  let easAddress: Hex | undefined;
+  try {
+    if (resolverRaw?.startsWith("0x")) resolver = getAddress(resolverRaw);
+    if (easRaw?.startsWith("0x")) easAddress = getAddress(easRaw);
+  } catch {
+    return NextResponse.json({ ok: false, error: "Invalid GRIDZ_RESOLVER or EAS_ADDRESS checksum." }, { status: 503 });
+  }
   const rpc = process.env.GRIDZ_RPC_URL ?? "https://ethereum.publicnode.com";
   const chainId = Number(process.env.GRIDZ_CHAIN_ID ?? "1");
 

@@ -1,5 +1,5 @@
 import { buildGrid, type Grid, type Hex, type Signer } from "@gridz/core";
-import type { LocalAccount, WalletClient } from "viem";
+import type { WalletClient } from "viem";
 import { DEFAULT_THEME } from "./defaultTheme";
 
 export interface ProfileFields {
@@ -8,25 +8,22 @@ export interface ProfileFields {
   url: string;
 }
 
-function walletSigner(walletClient: WalletClient, chainId: number): Signer {
-  const account = walletClient.account as LocalAccount | undefined;
-  if (!account?.address) throw new Error("Wallet account required");
-
+function walletSigner(walletClient: WalletClient, chainId: number, address: Hex): Signer {
   return {
     async did() {
-      return `did:pkh:eip155:${chainId}:${account.address.toLowerCase()}`;
+      return `did:pkh:eip155:${chainId}:${address.toLowerCase()}`;
     },
     format: () => "eip712-raw" as const,
     async signTypedData(params) {
       const signature = await walletClient.signTypedData({
-        account,
+        account: address,
         ...params,
         primaryType: params.primaryType,
       } as never);
-      return { signature, signerAddress: account.address };
+      return { signature, signerAddress: address };
     },
     async signMessage(message) {
-      return walletClient.signMessage({ account, message: message as never });
+      return walletClient.signMessage({ account: address, message: message as never });
     },
   };
 }
@@ -37,8 +34,9 @@ export async function buildProfileGrid(
   walletClient: WalletClient,
   chainId: number,
   resolver: Hex,
+  signerAddress: Hex,
 ): Promise<Grid> {
-  const signer = walletSigner(walletClient, chainId);
+  const signer = walletSigner(walletClient, chainId, signerAddress);
   const did = await signer.did();
 
   return buildGrid(signer, {

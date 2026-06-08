@@ -33,13 +33,11 @@ export async function loadGrid(subject: string): Promise<Grid | null> {
   const resolver = process.env.GRIDZ_RESOLVER as Hex | undefined;
   const client = createPublicClient({ chain: chainForId(chainId), transport: http(rpc) });
 
-  const sink = new EnsSink(new ReadOnlyEnsBackend(client), subject);
-  const manifest = await sink.readGrid();
-  if (manifest) return manifest;
-
   if (resolver?.startsWith("0x")) {
-    return loadGridFromResolver(client, subject, resolver);
+    const fromResolver = await loadGridFromResolver(client, subject, resolver);
+    if (fromResolver) return fromResolver;
   }
 
-  return null;
+  const sink = new EnsSink(new ReadOnlyEnsBackend(client), subject);
+  return sink.readGrid();
 }

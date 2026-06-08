@@ -38,6 +38,16 @@ const FALLBACK_KEYS = [
 
 const RESOLVER_ABI = [
   {
+    name: "text",
+    type: "function",
+    stateMutability: "view",
+    inputs: [
+      { name: "node", type: "bytes32" },
+      { name: "key", type: "string" },
+    ],
+    outputs: [{ type: "string" }],
+  },
+  {
     name: "cellAttestation",
     type: "function",
     stateMutability: "view",
@@ -57,8 +67,31 @@ function defaultPosition(i: number) {
   return { x, y, w: 1, h: 1, size: "1x1" as const };
 }
 
-async function readKeys(client: PublicClient, subject: string): Promise<string[]> {
-  const manifest = await client.getEnsText({ name: subject, key: "gridz.keys" });
+async function readResolverText(
+  client: PublicClient,
+  resolverAddress: Hex,
+  node: `0x${string}`,
+  key: string,
+): Promise<string | null> {
+  try {
+    const value = await client.readContract({
+      address: resolverAddress,
+      abi: RESOLVER_ABI,
+      functionName: "text",
+      args: [node, key],
+    });
+    return value || null;
+  } catch {
+    return null;
+  }
+}
+
+async function readKeys(
+  client: PublicClient,
+  resolverAddress: Hex,
+  node: `0x${string}`,
+): Promise<string[]> {
+  const manifest = await readResolverText(client, resolverAddress, node, "gridz.keys");
   if (manifest) {
     try {
       const keys = JSON.parse(manifest) as string[];
@@ -76,12 +109,12 @@ export async function loadGridFromResolver(
   resolverAddress: Hex,
 ): Promise<Grid | null> {
   const node = namehash(subject);
-  const keys = await readKeys(client, subject);
+  const keys = await readKeys(client, resolverAddress, node);
   const cells: Cell[] = [];
 
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i]!;
-    const value = await client.getEnsText({ name: subject, key });
+    const value = await readResolverText(client, resolverAddress, node, key);
     if (!value) continue;
 
     let uid: Hex = ZERO_UID;

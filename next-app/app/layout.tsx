@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { AppShell } from "../components/AppShell";
-import { WalletProvider } from "../lib/wallet";
+import { Web3Provider } from "../components/Web3Provider";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -20,9 +20,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${inter.variable} ${jetbrains.variable}`}>
       <body>
-        <WalletProvider>
+        <Web3Provider>
           <AppShell>{children}</AppShell>
-        </WalletProvider>
+        </Web3Provider>
       </body>
     </html>
   );

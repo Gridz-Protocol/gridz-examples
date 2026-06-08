@@ -19,9 +19,12 @@
     "@gridz/core": "workspace:*",
     "@gridz/react": "workspace:*",
     "@gridz/sinks": "workspace:*",
+    "@rainbow-me/rainbowkit": "^2.2.11",
+    "@tanstack/react-query": "^5.101.0",
     "next": "^15.1.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "viem": "^2.21.54"
+    "viem": "^2.21.54",
+    "wagmi": "^2.19.5"
   }
 }

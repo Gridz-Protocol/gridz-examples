@@ -1,10 +1,47 @@
 import { decodeBundle, type Cell, type Grid, type Hex } from "@gridz/core";
-import { EAS, SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
+import { getUIDsFromAttestReceipt } from "@ethereum-attestation-service/eas-sdk";
 import type { PublicClient, WalletClient } from "viem";
-import { getAddress, namehash } from "viem";
+import {
+  encodeAbiParameters,
+  getAddress,
+  namehash,
+  parseAbiParameters,
+  } from "viem";
 
-const CELL_SCHEMA_STRING =
-  "bytes32 gridId, string key, string valueHashHex, uint64 expiresAt, bytes32 widgetTypeHash";
+const CELL_SCHEMA_PARAMS = parseAbiParameters(
+  "bytes32 gridId, string key, string valueHashHex, uint64 expiresAt, bytes32 widgetTypeHash",
+);
+
+const EAS_ABI = [
+  {
+    type: "function",
+    name: "attest",
+    stateMutability: "payable",
+    inputs: [
+      {
+        name: "request",
+        type: "tuple",
+        components: [
+          { name: "schema", type: "bytes32" },
+          {
+            name: "data",
+            type: "tuple",
+            components: [
+              { name: "recipient", type: "address" },
+              { name: "expirationTime", type: "uint64" },
+              { name: "revocable", type: "bool" },
+              { name: "refUID", type: "bytes32" },
+              { name: "data", type: "bytes" },
+              { name: "value", type: "uint256" },
+            ],
+          },
+        ],
+      },
+    ],
+    outputs: [{ type: "bytes32" }],
+  },
+] as const;
+
 
 const RESOLVER_ABI = [
   {
@@ -48,6 +85,16 @@ function easFieldsFromCell(cell: Cell): {
   };
 }
 
+function encodeCellAttestationData(fields: ReturnType<typeof easFieldsFromCell>): Hex {
+  return encodeAbiParameters(CELL_SCHEMA_PARAMS, [
+    fields.gridId,
+    fields.key,
+    fields.valueHashHex,
+    fields.expiresAt,
+    fields.widgetTypeHash,
+  ]);
+}
+
 export async function publishGridViaEas(
   grid: Grid,
   ensName: string,
@@ -63,47 +110,58 @@ export async function publishGridViaEas(
   const account = walletClient.account;
   if (!account) throw new Error("Registrar wallet account required");
 
-  const eas = new EAS(easAddress);
-  eas.connect(walletClient as never);
-
-  const encoder = new SchemaEncoder(CELL_SCHEMA_STRING);
+  const eas = getAddress(easAddress);
+  const resolver = getAddress(resolverAddress);
   const node = namehash(ensName);
-  const uids: Hex[] = [];
-  let txCount = 0;
+  const zero = getAddress("0x0000000000000000000000000000000000000000");
 
-  for (const cell of grid.cells) {
-    const fields = easFieldsFromCell(cell);
-    const encoded = encoder.encodeData([
-      { name: "gridId", value: fields.gridId, type: "bytes32" },
-      { name: "key", value: fields.key, type: "string" },
-      { name: "valueHashHex", value: fields.valueHashHex, type: "string" },
-      { name: "expiresAt", value: fields.expiresAt, type: "uint64" },
-      { name: "widgetTypeHash", value: fields.widgetTypeHash, type: "bytes32" },
-    ]);
+  const uids = await Promise.all(
+    grid.cells.map(async (cell) => {
+      const fields = easFieldsFromCell(cell);
+      const encoded = encodeCellAttestationData(fields);
+      const request = {
+        schema: cellSchema,
+        data: {
+          recipient: zero,
+          expirationTime: 0n,
+          revocable: true,
+          refUID: "0x0000000000000000000000000000000000000000000000000000000000000000" as Hex,
+          data: encoded,
+          value: 0n,
+        },
+      } as const;
 
-    const tx = await eas.attest({
-      schema: cellSchema,
-      data: {
-        recipient: getAddress("0x0000000000000000000000000000000000000000"),
-        expirationTime: 0n,
-        revocable: true,
-        data: encoded,
-      },
-    });
-    const uid = (await tx.wait()) as Hex;
-    uids.push(uid);
+      const attestHash = await walletClient.writeContract({
+        account,
+        chain: walletClient.chain,
+        address: eas,
+        abi: EAS_ABI,
+        functionName: "attest",
+        args: [request],
+      });
+      const attestReceipt = await publicClient.waitForTransactionReceipt({ hash: attestHash });
+      if (attestReceipt.status !== "success") {
+        throw new Error(`EAS attest for ${cell.key} reverted (tx ${attestHash})`);
+      }
+      const uid = getUIDsFromAttestReceipt(attestReceipt as never)[0] as Hex | undefined;
+      if (!uid) throw new Error(`EAS attest for ${cell.key} did not emit an Attested event`);
 
-    const linkHash = await walletClient.writeContract({
-      account,
-      chain: walletClient.chain,
-      address: resolverAddress,
-      abi: RESOLVER_ABI,
-      functionName: "setCellAttestation",
-      args: [node, cell.key, uid],
-    });
-    await publicClient.waitForTransactionReceipt({ hash: linkHash });
-    txCount += 2;
-  }
+      const linkHash = await walletClient.writeContract({
+        account,
+        chain: walletClient.chain,
+        address: resolver,
+        abi: RESOLVER_ABI,
+        functionName: "setCellAttestation",
+        args: [node, cell.key, uid],
+      });
+      const linkReceipt = await publicClient.waitForTransactionReceipt({ hash: linkHash });
+      if (linkReceipt.status !== "success") {
+        throw new Error(`setCellAttestation for ${cell.key} reverted (tx ${linkHash})`);
+      }
 
-  return { txCount, uids };
+      return uid;
+    }),
+  );
+
+  return { txCount: grid.cells.length * 2, uids };
 }
