@@ -56,7 +56,7 @@ export default function DocsHome() {
           a Spritz-style bento grid.
         </li>
         <li>
-          <strong>Query &amp; verify</strong> — every profile page links to API fetch and offline
+          <strong>Verify profile</strong> — every profile page links to API fetch and offline
           verification steps for that ENS name.
         </li>
       </ul>

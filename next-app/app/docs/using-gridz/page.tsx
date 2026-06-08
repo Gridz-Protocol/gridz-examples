@@ -93,7 +93,7 @@ export default function UsingGridzPage() {
         </li>
         <li>
           <strong>Published</strong> — <strong>Edit profile</strong> appears only when your connected
-          wallet matches the on-chain attester. Visitors see <strong>Query &amp; verify</strong> but
+          wallet matches the on-chain attester. Visitors see <strong>Verify profile</strong> but
           not the editor.
         </li>
       </ul>
@@ -206,9 +206,9 @@ export default function UsingGridzPage() {
         profile pages.
       </p>
 
-      <h2>Query &amp; verify (every profile)</h2>
+      <h2>Verify profile (every profile)</h2>
       <p>
-        Each profile page has a <strong>Query &amp; verify</strong> button in the toolbar. It opens a
+        Each profile page has a <strong>Verify profile</strong> button in the toolbar. It opens a
         modal with subject-specific instructions to:
       </p>
       <ul>

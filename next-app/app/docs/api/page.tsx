@@ -85,7 +85,7 @@ GET https://${bio}/api/profile/kevin.gridz.eth`}</code>
         </li>
         <li>
           <strong>Public read</strong> — this API and profile pages read attestations back from the
-          resolver. Use <strong>Query &amp; verify</strong> on any profile for fetch + verify
+          resolver. Use <strong>Verify profile</strong> on any profile for fetch + verify
           instructions.
         </li>
       </ol>

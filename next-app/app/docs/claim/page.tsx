@@ -109,7 +109,7 @@ export default function ClaimDocsPage() {
         <code>{`GET https://${bio}/api/profile/kevin.${ens}`}</code>
       </pre>
       <p>
-        On your profile page, use <strong>Query &amp; verify</strong> for copy-paste fetch and verify
+        On your profile page, use <strong>Verify profile</strong> for copy-paste fetch and verify
         commands. See <a href="/docs/api">API &amp; integrations</a> for the full response shape.
       </p>
     </>
