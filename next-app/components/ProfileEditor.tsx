@@ -8,6 +8,7 @@ import { saveDraft } from "../lib/drafts";
 import { fieldsFromGrid, type ProfileEditorState } from "../lib/profileFields";
 import { AvatarField } from "./AvatarField";
 import { ProfileWidgetFields } from "./ProfileWidgetFields";
+import { PublishProgress, type PublishUiPhase } from "./PublishProgress";
 import type { Hex } from "viem";
 
 export interface ProfileEditorProps {
@@ -36,23 +37,36 @@ export function ProfileEditor({ ensName, initial, onSaved, isClaim = false }: Pr
   } = useWallet();
   const [fields, setFields] = useState<ProfileEditorState>(() => fieldsFromGrid(initial));
   const [busy, setBusy] = useState<"save" | "publish" | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [publishUi, setPublishUi] = useState<{
+    phase: PublishUiPhase;
+    cellCount?: number;
+    txCount?: number;
+    errorMessage?: string;
+    draftSaved?: boolean;
+  } | null>(null);
 
   useEffect(() => {
+    if (busy !== null) return;
     setFields(fieldsFromGrid(initial));
-  }, [initial]);
+  }, [initial, busy]);
 
   const resolver = (process.env.NEXT_PUBLIC_GRIDZ_RESOLVER ?? "") as Hex;
 
   const runWithWallet = useCallback(
     async (action: "save" | "publish") => {
       if (!resolver.startsWith("0x")) {
-        setMessage("Missing GRIDZ_RESOLVER — set NEXT_PUBLIC_GRIDZ_RESOLVER in env.");
+        setSaveMessage("Missing GRIDZ_RESOLVER — set NEXT_PUBLIC_GRIDZ_RESOLVER in env.");
         return;
       }
 
       setBusy(action);
-      setMessage(null);
+      setSaveMessage(null);
+      if (action === "publish") {
+        setPublishUi({ phase: "signing" });
+      } else {
+        setPublishUi(null);
+      }
 
       try {
         const wallet = await prepareWallet();
@@ -68,14 +82,12 @@ export function ProfileEditor({ ensName, initial, onSaved, isClaim = false }: Pr
         if (action === "save") {
           saveDraft(ensName, grid);
           onSaved(grid, "draft");
-          setMessage("Signed profile saved as a local draft. Publish to ENS when ready.");
+          setSaveMessage("Signed profile saved as a local draft. Publish to ENS when ready.");
           return;
         }
 
         const cellCount = grid.cells.length;
-        setMessage(
-          `Signed. The Gridz registrar is submitting on-chain EAS attestations (${cellCount} cells — usually 1–3 minutes). Do not close this tab.`,
-        );
+        setPublishUi({ phase: "publishing", cellCount });
 
         const res = await fetch("/api/publish", {
           method: "POST",
@@ -88,16 +100,23 @@ export function ProfileEditor({ ensName, initial, onSaved, isClaim = false }: Pr
           onSaved(grid, "draft");
           const prefix =
             res.status >= 500 ? "Server error" : res.status === 503 ? "Publish unavailable" : "Publish failed";
-          setMessage(`${prefix}: ${result.error ?? res.statusText} — your signed draft was saved locally.`);
+          setPublishUi({
+            phase: "error",
+            errorMessage: `${prefix}: ${result.error ?? res.statusText}`,
+            draftSaved: true,
+          });
           return;
         }
         saveDraft(ensName, grid);
         onSaved(grid, "chain");
-        setMessage(
-          `Published to ENS (${result.txCount ?? "?"} writes). Refresh in a minute for on-chain reads.`,
-        );
+        setPublishUi({ phase: "success", cellCount, txCount: result.txCount });
       } catch (e) {
-        setMessage(e instanceof Error ? e.message : String(e));
+        const msg = e instanceof Error ? e.message : String(e);
+        if (action === "publish") {
+          setPublishUi({ phase: "error", errorMessage: msg });
+        } else {
+          setSaveMessage(msg);
+        }
       } finally {
         setBusy(null);
       }
@@ -218,7 +237,7 @@ export function ProfileEditor({ ensName, initial, onSaved, isClaim = false }: Pr
           disabled={formDisabled}
         >
           {busy === "publish"
-            ? "Publishing on-chain…"
+            ? "Publishing…"
             : isClaim
               ? walletReady
                 ? "Claim & publish"
@@ -228,7 +247,20 @@ export function ProfileEditor({ ensName, initial, onSaved, isClaim = false }: Pr
                 : "Connect & publish"}
         </button>
       </div>
-      {message ? <p className="profile-editor__message">{message}</p> : null}
+
+      {publishUi ? (
+        <PublishProgress
+          phase={publishUi.phase}
+          ensName={ensName}
+          cellCount={publishUi.cellCount}
+          txCount={publishUi.txCount}
+          errorMessage={publishUi.errorMessage}
+          draftSaved={publishUi.draftSaved}
+          onDismiss={() => setPublishUi(null)}
+        />
+      ) : null}
+
+      {saveMessage ? <p className="profile-editor__message">{saveMessage}</p> : null}
     </section>
   );
 }

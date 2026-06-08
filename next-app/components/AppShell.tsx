@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { WalletButton } from "./WalletButton";
 import { MyProfilesMenu } from "./MyProfilesMenu";
+import { demoProfileUrl } from "../lib/demoProfile";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -36,6 +37,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <Link href="/for-ai" className={`site-nav__link${isForAi ? " site-nav__link--active" : ""}`}>
             For AI
           </Link>
+          <a href={demoProfileUrl()} className="site-nav__link">
+            Demo
+          </a>
         </nav>
         <div className="site-nav__actions">
           <MyProfilesMenu />

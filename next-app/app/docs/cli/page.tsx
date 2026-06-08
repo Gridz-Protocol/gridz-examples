@@ -26,7 +26,7 @@ gridz init --template minimal
 # 2. Add cells
 gridz cell add alias "Your Name"
 gridz cell add description "A short bio"
-gridz cell add url "https://example.com"
+gridz cell add url "https://gridz.bio"
 
 # 3. Validate, build signed JSON, verify
 gridz grid validate

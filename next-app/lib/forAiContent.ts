@@ -2,6 +2,8 @@ const SITE = process.env.NEXT_PUBLIC_SITE_DOMAIN ?? "gridz.bio";
 const ENS_BASE = process.env.NEXT_PUBLIC_GRIDZ_ENS_BASE ?? "gridz.eth";
 const ORIGIN = `https://${SITE}`;
 
+const DEMO = process.env.NEXT_PUBLIC_DEMO_PROFILE_SUBJECT ?? "demo.gridz.eth";
+
 export const FOR_AI_LINKS = {
   origin: ORIGIN,
   forAi: `${ORIGIN}/for-ai`,
@@ -17,6 +19,8 @@ export const FOR_AI_LINKS = {
   find: `${ORIGIN}/find`,
   profileApi: (subject: string) => `${ORIGIN}/api/profile/${encodeURIComponent(subject)}`,
   profilePage: (subject: string) => `${ORIGIN}/${encodeURIComponent(subject)}`,
+  demoProfile: `${ORIGIN}/${encodeURIComponent(DEMO)}`,
+  demoApi: `${ORIGIN}/api/profile/${encodeURIComponent(DEMO)}`,
   github: "https://github.com/Gridz-Protocol/gridz",
   githubJs: "https://github.com/Gridz-Protocol/gridz-js",
   githubPy: "https://github.com/Gridz-Protocol/gridz-py",
@@ -37,6 +41,12 @@ This file is for LLMs, agents, and automated tools. Start here before integratin
 - [skill.md](${FOR_AI_LINKS.skillMd}): Cursor / agent skill — workflows, APIs, packages, guardrails
 - [Documentation](${FOR_AI_LINKS.docs}): human-readable guides (claiming, API, CLI, toolkit)
 - [Profile read API](${FOR_AI_LINKS.api}): \`GET /api/profile/{ensName}\` — JSON Grid, CORS open
+
+## Demo profile (integration test)
+
+- [Demo profile](${FOR_AI_LINKS.demoProfile}) — Spritz-style widget showcase at demo.gridz.eth
+- Refresh: pnpm demo:publish (requires GRIDZ_SIGNER_KEY + registrar env)
+- Verify: pnpm demo:verify
 
 ## Read a profile (primary integration)
 

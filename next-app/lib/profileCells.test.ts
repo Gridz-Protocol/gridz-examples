@@ -7,10 +7,10 @@ describe("profileCellsFromFields", () => {
     const cells = profileCellsFromFields({
       ...DEFAULT_PROFILE_FIELDS,
       alias: "Kevin",
-      url: "example.com",
+      url: "gridz.bio",
     });
     const url = cells.find((c) => c.key === "url");
-    expect(url?.value).toBe("https://example.com");
+    expect(url?.value).toBe("https://gridz.bio");
   });
 
   it("includes all core profile fields", () => {
@@ -26,7 +26,7 @@ describe("profileCellsFromFields", () => {
       stats: [{ label: "Posts", value: "42" }],
       linkEnabled: true,
       linkLabel: "Blog",
-      linkUrl: "blog.example.com",
+      linkUrl: "blog.gridz.bio",
     });
     const keys = cells.map((c) => c.key);
     expect(keys).toContain("alias");

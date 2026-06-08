@@ -124,7 +124,9 @@ export async function publishGridViaEas(
   });
 
   const uids: Hex[] = [];
-  for (const cell of ordered) {
+  for (let i = 0; i < ordered.length; i++) {
+    const cell = ordered[i]!;
+    console.log(`[publish] ${i + 1}/${ordered.length} ${cell.key}…`);
     const fields = easFieldsFromCell(cell);
     const encoded = encodeCellAttestationData(fields);
     const request = {
@@ -147,7 +149,7 @@ export async function publishGridViaEas(
       functionName: "attest",
       args: [request],
     });
-    const attestReceipt = await publicClient.waitForTransactionReceipt({ hash: attestHash });
+    const attestReceipt = await publicClient.waitForTransactionReceipt({ hash: attestHash, timeout: 600_000 });
     if (attestReceipt.status !== "success") {
       throw new Error(`EAS attest for ${cell.key} reverted (tx ${attestHash})`);
     }
@@ -162,7 +164,7 @@ export async function publishGridViaEas(
       functionName: "setCellAttestation",
       args: [node, cell.key, uid],
     });
-    const linkReceipt = await publicClient.waitForTransactionReceipt({ hash: linkHash });
+    const linkReceipt = await publicClient.waitForTransactionReceipt({ hash: linkHash, timeout: 600_000 });
     if (linkReceipt.status !== "success") {
       throw new Error(`setCellAttestation for ${cell.key} reverted (tx ${linkHash})`);
     }

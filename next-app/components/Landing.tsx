@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { ProfileLookup } from "./ProfileLookup";
+import { demoProfileUrl } from "../lib/demoProfile";
 
 const ENS_BASE = process.env.NEXT_PUBLIC_GRIDZ_ENS_BASE ?? "gridz.eth";
 const SITE_DOMAIN = process.env.NEXT_PUBLIC_SITE_DOMAIN ?? "gridz.bio";
@@ -30,6 +31,9 @@ export function Landing() {
           <button type="button" className="site-btn site-btn--ghost" onClick={() => router.push("/find")}>
             Find a profile
           </button>
+          <a className="site-btn site-btn--ghost" href={demoProfileUrl()}>
+            Demo profile
+          </a>
         </div>
       </section>
       <section className="landing__features">

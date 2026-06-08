@@ -9,6 +9,7 @@ import { loadDraft } from "../lib/drafts";
 import { mergeGrids } from "../lib/mergeGrids";
 import { rememberProfile } from "../lib/recentProfiles";
 import { bioUrlForEns } from "../lib/subjectFromHost";
+import { isDemoProfile } from "../lib/demoProfile";
 
 export interface ProfilePageProps {
   subject: string;
@@ -48,8 +49,19 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
     setEditing(false);
   }, []);
 
+  const demo = isDemoProfile(subject);
+
   return (
     <>
+      {demo ? (
+        <div className="demo-banner" role="note">
+          <span>🚀 Demo profile</span>
+          <p>
+            Fictional showcase (Nova Chen) — signed with <code>GRIDZ_SIGNER_KEY</code> and published
+            like any real profile. Run <code>pnpm demo:publish</code> to refresh.
+          </p>
+        </div>
+      ) : null}
       <div className="profile-layout profile-layout--toolbar">
         <div className="profile-toolbar">
           <div className="profile-toolbar__meta">
