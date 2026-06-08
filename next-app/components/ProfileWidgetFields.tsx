@@ -2,7 +2,8 @@
 
 import type { ReactNode } from "react";
 
-import type { GuestbookEntry, ProfileEditorState, StatRow } from "../lib/profileFields";
+import type { GuestbookEntry, ProfileEditorState, StatRow, TokenEntry } from "../lib/profileFields";
+import { CHAIN_OPTIONS } from "../lib/chainLabels";
 import { isWidgetEnabled, setWidgetEnabled } from "../lib/profileFields";
 import { WIDGET_CATALOG, type WidgetKind } from "../lib/widgetCatalog";
 
@@ -44,6 +45,10 @@ export function ProfileWidgetFields({ fields, onChange, disabled }: ProfileWidge
     set({
       guestbookEntries: fields.guestbookEntries.map((e, i) => (i === index ? { ...e, ...patch } : e)),
     });
+  };
+
+  const setToken = (index: number, patch: Partial<TokenEntry>) => {
+    set({ tokens: fields.tokens.map((row, i) => (i === index ? { ...row, ...patch } : row)) });
   };
 
   return (
@@ -146,6 +151,10 @@ export function ProfileWidgetFields({ fields, onChange, disabled }: ProfileWidge
 
       {fields.pollEnabled ? (
         <WidgetPanel title="Poll">
+          <p className="profile-widgets__hint">
+            Question and options are signed on-chain. Visitor votes will use wallet-signed tallies later — local
+            preview voting works today.
+          </p>
           <input className="site-input" value={fields.pollQuestion} onChange={(e) => set({ pollQuestion: e.target.value })} placeholder="Question" disabled={disabled} />
           {fields.pollOptions.map((opt, i) => (
             <input key={i} className="site-input" value={opt} onChange={(e) => setPollOption(i, e.target.value)} placeholder={`Option ${i + 1}`} disabled={disabled} />
@@ -182,6 +191,63 @@ export function ProfileWidgetFields({ fields, onChange, disabled }: ProfileWidge
             </div>
           ))}
           <button type="button" className="site-btn" disabled={disabled || fields.guestbookEntries.length >= 5} onClick={() => set({ guestbookEntries: [...fields.guestbookEntries, { text: "", author: "" }] })}>Add entry</button>
+        </WidgetPanel>
+      ) : null}
+
+      {fields.tokensEnabled ? (
+        <WidgetPanel title="Org tokens">
+          <p className="profile-widgets__hint">
+            For on-chain companies — list token contract addresses per chain. Balances can be fetched live later;
+            this attests which tokens you officially list.
+          </p>
+          {fields.tokens.map((token, i) => (
+            <div key={i} className="profile-widgets__token-row">
+              <select
+                className="site-input"
+                value={token.chainId}
+                onChange={(e) => setToken(i, { chainId: Number(e.target.value) })}
+                disabled={disabled}
+              >
+                {CHAIN_OPTIONS.map((chain) => (
+                  <option key={chain.id} value={chain.id}>
+                    {chain.name}
+                  </option>
+                ))}
+              </select>
+              <input
+                className="site-input"
+                value={token.symbol}
+                onChange={(e) => setToken(i, { symbol: e.target.value })}
+                placeholder="Symbol — e.g. ACME"
+                disabled={disabled}
+              />
+              <input
+                className="site-input"
+                value={token.name}
+                onChange={(e) => setToken(i, { name: e.target.value })}
+                placeholder="Name — e.g. Acme Corp"
+                disabled={disabled}
+              />
+              <input
+                className="site-input"
+                value={token.address}
+                onChange={(e) => setToken(i, { address: e.target.value })}
+                placeholder="0x… contract address"
+                disabled={disabled}
+                spellCheck={false}
+              />
+            </div>
+          ))}
+          <button
+            type="button"
+            className="site-btn"
+            disabled={disabled || fields.tokens.length >= 6}
+            onClick={() =>
+              set({ tokens: [...fields.tokens, { chainId: 1, address: "", symbol: "", name: "" }] })
+            }
+          >
+            Add token
+          </button>
         </WidgetPanel>
       ) : null}
 

@@ -48,6 +48,8 @@ export const DEMO_PROFILE_FIELDS: ProfileEditorState = {
   textContent:
     "When something is important enough, you do it even if the odds are not in your favor.",
   guestbookEnabled: true,
+  tokensEnabled: false,
+  tokens: [{ chainId: 1, address: "", symbol: "", name: "" }],
   guestbookEntries: [
     { text: "Take us to Mars! 🚀", author: "SpaceEnthusiast" },
     { text: "FSD is amazing! Thank you!", author: "TeslaOwner" },

@@ -204,7 +204,7 @@ export async function buildProfileGridIncremental(
   const grid: Grid = {
     schema_version: SCHEMA_VERSION,
     subject: {
-      type: "human",
+      type: fields.tokensEnabled ? "organization" : "human",
       did: subjectDid,
       ens: ensName,
       display_name: fields.alias.trim() || ensName.split(".")[0],

@@ -41,4 +41,19 @@ describe("profileCellsFromFields", () => {
     const manifest = cells.find((c) => c.key === "gridz.keys");
     expect(JSON.parse(String(manifest?.value))).toContain("url");
   });
+  it("includes org tokens when enabled", () => {
+    const cells = profileCellsFromFields({
+      ...DEFAULT_PROFILE_FIELDS,
+      alias: "Acme Corp",
+      tokensEnabled: true,
+      tokens: [
+        { chainId: 8453, address: "0x0000000000000000000000000000000000000001", symbol: "ACME", name: "Acme Token" },
+      ],
+    });
+    const tokenCell = cells.find((c) => c.key === "gridz.tokens");
+    expect(tokenCell?.widget_type).toBe("gridz.tokens");
+    const value = tokenCell?.value as { tokens: { chainId: number; address: string }[] };
+    expect(value.tokens[0]?.chainId).toBe(8453);
+  });
+
 });

@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from "react";
 import type { Cell } from "@gridz/core";
+import { chainName, explorerTokenUrl } from "../../lib/chainLabels";
+import { getLocalPollVote, setLocalPollVote } from "../../lib/pollVotes";
+
+export type SpritzWidgetProps = { cell: Cell; subject?: string };
 
 const asString = (v: unknown) => (typeof v === "string" ? v : JSON.stringify(v));
 
@@ -47,11 +51,24 @@ export function SpritzStats({ cell }: { cell: Cell }) {
   );
 }
 
-export function SpritzPoll({ cell }: { cell: Cell }) {
+export function SpritzPoll({ cell, subject }: SpritzWidgetProps) {
   const v = (cell.value ?? {}) as { q?: string; options?: string[]; votes?: number[] };
   const options = v.options ?? [];
-  const votes = v.votes ?? options.map(() => 0);
-  const total = votes.reduce((a, b) => a + b, 0) || 1;
+  const onChainVotes = v.votes ?? options.map(() => 0);
+  const onChainTotal = onChainVotes.reduce((a, b) => a + b, 0);
+  const [localVote, setLocalVote] = useState<number | null>(() =>
+    subject ? getLocalPollVote(subject, cell.id) : null,
+  );
+
+  const hasOnChainTally = onChainTotal > 0;
+  const showBars = hasOnChainTally;
+  const displayTotal = hasOnChainTally ? onChainTotal : 1;
+
+  const vote = (index: number) => {
+    if (!subject || hasOnChainTally) return;
+    setLocalPollVote(subject, cell.id, index);
+    setLocalVote(index);
+  };
 
   return (
     <div className="spritz-poll">
@@ -59,17 +76,39 @@ export function SpritzPoll({ cell }: { cell: Cell }) {
       <ul className="spritz-poll__list">
         {options.map((o, i) => (
           <li key={i}>
-            <div className="spritz-poll__row">
-              <span>{o}</span>
-              <span>{Math.round((votes[i]! / total) * 100)}%</span>
-            </div>
-            <div className="spritz-poll__bar">
-              <div className="spritz-poll__fill" style={{ width: `${(votes[i]! / total) * 100}%` }} />
-            </div>
+            {showBars ? (
+              <>
+                <div className="spritz-poll__row">
+                  <span>{o}</span>
+                  <span>{Math.round((onChainVotes[i]! / displayTotal) * 100)}%</span>
+                </div>
+                <div className="spritz-poll__bar">
+                  <div
+                    className="spritz-poll__fill"
+                    style={{ width: `${(onChainVotes[i]! / displayTotal) * 100}%` }}
+                  />
+                </div>
+              </>
+            ) : (
+              <button
+                type="button"
+                className={`spritz-poll__option${localVote === i ? " spritz-poll__option--picked" : ""}`}
+                onClick={() => vote(i)}
+              >
+                <span>{o}</span>
+                {localVote === i ? <span className="spritz-poll__picked">Your vote</span> : null}
+              </button>
+            )}
           </li>
         ))}
       </ul>
-      {total > 1 ? <p className="spritz-poll__meta">{total} votes</p> : null}
+      {hasOnChainTally ? (
+        <p className="spritz-poll__meta">{onChainTotal} vote{onChainTotal === 1 ? "" : "s"} on-chain</p>
+      ) : localVote != null ? (
+        <p className="spritz-poll__meta">Vote saved in this browser — shared tallies ship with wallet signing</p>
+      ) : (
+        <p className="spritz-poll__meta">Tap an option to vote (local preview)</p>
+      )}
     </div>
   );
 }
@@ -228,6 +267,49 @@ export function SpritzText({ cell }: { cell: Cell }) {
   return <p className="spritz-text">{asString(cell.value)}</p>;
 }
 
+export function SpritzTokens({ cell }: SpritzWidgetProps) {
+  const raw =
+    typeof cell.value === "object" && cell.value !== null && !Array.isArray(cell.value)
+      ? (cell.value as { tokens?: { chainId?: number; address?: string; symbol?: string; name?: string }[] })
+          .tokens
+      : [];
+  const tokens = Array.isArray(raw) ? raw : [];
+
+  if (tokens.length === 0) {
+    return <p className="spritz-text spritz-text--muted">No tokens listed</p>;
+  }
+
+  return (
+    <ul className="spritz-tokens">
+      {tokens.map((t, i) => {
+        const address = typeof t.address === "string" ? t.address : "";
+        const chainId = typeof t.chainId === "number" ? t.chainId : 1;
+        const symbol = typeof t.symbol === "string" && t.symbol ? t.symbol : "Token";
+        const name = typeof t.name === "string" && t.name ? t.name : null;
+        const short = address ? `${address.slice(0, 6)}…${address.slice(-4)}` : "—";
+        const href = address ? explorerTokenUrl(chainId, address) : undefined;
+
+        return (
+          <li key={i} className="spritz-tokens__row">
+            <div className="spritz-tokens__head">
+              <strong className="spritz-tokens__symbol">{symbol}</strong>
+              <span className="spritz-tokens__chain">{chainName(chainId)}</span>
+            </div>
+            {name ? <p className="spritz-tokens__name">{name}</p> : null}
+            {href ? (
+              <a className="spritz-tokens__addr" href={href} target="_blank" rel="noreferrer noopener">
+                {short}
+              </a>
+            ) : (
+              <span className="spritz-tokens__addr">{short}</span>
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 export function SpritzGeneric({ cell }: { cell: Cell }) {
   if (typeof cell.value === "object" && cell.value !== null) {
     return (
@@ -248,6 +330,7 @@ export function resolveSpritzWidget(cell: Cell) {
   if (wt === "gridz.countdown") return SpritzCountdown;
   if (wt === "gridz.clock" || cell.key === "timezone") return SpritzClock;
   if (wt === "gridz.guestbook") return SpritzGuestbook;
+  if (wt === "gridz.tokens") return SpritzTokens;
   if (wt === "gridz.text" || cell.key === "agent-context") return SpritzText;
   return SpritzGeneric;
 }

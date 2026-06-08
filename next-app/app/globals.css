@@ -496,6 +496,17 @@ a:hover {
   gap: 8px;
 }
 
+.profile-widgets__token-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.profile-widgets__token-row .site-input:last-child {
+  grid-column: 1 / -1;
+}
+
 @media (max-width: 640px) {
   .avatar-field {
     flex-direction: column;

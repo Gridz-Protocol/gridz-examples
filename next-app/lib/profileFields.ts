@@ -10,6 +10,13 @@ export interface GuestbookEntry {
   author: string;
 }
 
+export interface TokenEntry {
+  chainId: number;
+  address: string;
+  symbol: string;
+  name: string;
+}
+
 export interface ProfileEditorState {
   alias: string;
   description: string;
@@ -46,6 +53,8 @@ export interface ProfileEditorState {
   textContent: string;
   guestbookEnabled: boolean;
   guestbookEntries: GuestbookEntry[];
+  tokensEnabled: boolean;
+  tokens: TokenEntry[];
 }
 
 export const DEFAULT_PROFILE_FIELDS: ProfileEditorState = {
@@ -87,6 +96,8 @@ export const DEFAULT_PROFILE_FIELDS: ProfileEditorState = {
   textContent: "",
   guestbookEnabled: false,
   guestbookEntries: [{ text: "", author: "" }],
+  tokensEnabled: false,
+  tokens: [{ chainId: 1, address: "", symbol: "", name: "" }],
 };
 
 function cellString(grid: Grid | null | undefined, key: string): string {
@@ -97,6 +108,25 @@ function cellString(grid: Grid | null | undefined, key: string): string {
 function cellObject(grid: Grid | null | undefined, key: string): Record<string, unknown> | null {
   const v = grid?.cells.find((c) => c.key === key)?.value;
   return v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : null;
+}
+
+
+function parseTokens(grid: Grid): TokenEntry[] {
+  const cell = grid.cells.find((c) => c.key === "gridz.tokens");
+  if (!cell || typeof cell.value !== "object" || cell.value === null || Array.isArray(cell.value)) {
+    return [{ chainId: 1, address: "", symbol: "", name: "" }];
+  }
+  const raw = (cell.value as { tokens?: unknown }).tokens;
+  if (!Array.isArray(raw) || raw.length === 0) return [{ chainId: 1, address: "", symbol: "", name: "" }];
+  return raw.map((t) => {
+    const row = t as { chainId?: number; address?: string; symbol?: string; name?: string };
+    return {
+      chainId: typeof row.chainId === "number" ? row.chainId : 1,
+      address: typeof row.address === "string" ? row.address : "",
+      symbol: typeof row.symbol === "string" ? row.symbol : "",
+      name: typeof row.name === "string" ? row.name : "",
+    };
+  });
 }
 
 function parseGuestbook(grid: Grid): GuestbookEntry[] {
@@ -177,6 +207,8 @@ export function fieldsFromGrid(grid: Grid | null | undefined): ProfileEditorStat
     textContent: cellString(grid, "gridz.text"),
     guestbookEnabled: Boolean(grid.cells.find((c) => c.key === "gridz.guestbook")),
     guestbookEntries: parseGuestbook(grid),
+    tokensEnabled: Boolean(grid.cells.find((c) => c.key === "gridz.tokens")),
+    tokens: parseTokens(grid),
   };
 }
 
@@ -192,6 +224,7 @@ export function isWidgetEnabled(fields: ProfileEditorState, id: string): boolean
     clock: fields.clockEnabled,
     text: fields.textEnabled,
     guestbook: fields.guestbookEnabled,
+    tokens: fields.tokensEnabled,
   };
   return map[id] ?? false;
 }
@@ -212,5 +245,6 @@ export function setWidgetEnabled(
   if (id === "clock") patch.clockEnabled = enabled;
   if (id === "text") patch.textEnabled = enabled;
   if (id === "guestbook") patch.guestbookEnabled = enabled;
+  if (id === "tokens") patch.tokensEnabled = enabled;
   return { ...fields, ...patch };
 }

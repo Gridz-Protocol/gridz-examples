@@ -78,7 +78,7 @@ export function SpritzProfile({ grid, subject, showOwnerHints = false }: SpritzP
               const W = resolveSpritzWidget(cell);
               return (
                 <div key={cell.id} className="spritz-hero__social">
-                  <W cell={cell} />
+                  <W cell={cell} subject={subject} />
                 </div>
               );
             })}
@@ -115,7 +115,7 @@ export function SpritzProfile({ grid, subject, showOwnerHints = false }: SpritzP
                     {badge.glyph}
                   </span>
                 </header>
-                <W cell={cell} />
+                <W cell={cell} subject={subject} />
               </article>
             );
           })

@@ -198,6 +198,29 @@ export function profileCellsFromFields(fields: ProfileEditorState): CellDraft[] 
     }
   }
 
+
+  if (fields.tokensEnabled) {
+    const tokens = fields.tokens
+      .filter((t) => t.address.trim())
+      .map((t) => ({
+        chainId: t.chainId,
+        address: t.address.trim(),
+        ...(t.symbol.trim() ? { symbol: t.symbol.trim() } : {}),
+        ...(t.name.trim() ? { name: t.name.trim() } : {}),
+      }));
+    if (tokens.length) {
+      cells.push({
+        id: "gridz.tokens",
+        key: "gridz.tokens",
+        value: { tokens },
+        widget_type: "gridz.tokens",
+        position: { x: 0, y, w: 2, h: 1 },
+        size: "2x1",
+      });
+      y += 1;
+    }
+  }
+
   if (fields.linkEnabled && fields.linkUrl.trim()) {
     cells.push({
       id: "gridz.social_link",
