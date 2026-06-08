@@ -13,7 +13,7 @@ import { mergeFieldPreview } from "../lib/previewGrid";
 import { rememberProfile } from "../lib/recentProfiles";
 import { bioUrlForEns } from "../lib/subjectFromHost";
 import { isDemoProfile } from "../lib/demoProfile";
-import { isProfileOwner } from "../lib/isProfileOwner";
+import { canEditProfile, isProfileSigner } from "../lib/canEditProfile";
 import { useWallet } from "../lib/wallet";
 
 export interface ProfilePageProps {
@@ -79,15 +79,22 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
   );
 
   const demo = isDemoProfile(subject);
-  // Permissions follow on-chain baseline — not the live draft preview grid (unsigned placeholders).
-  const isChainOwner = chainGrid
-    ? isProfileOwner(chainGrid, address, targetChainId)
-    : true;
-  const canEdit = !chainGrid || isChainOwner;
+  const canEdit = canEditProfile({
+    chainGrid,
+    draftBundle,
+    walletAddress: address,
+    chainId: targetChainId,
+  });
+  const isChainOwner = isProfileSigner({
+    chainGrid,
+    draftBundle,
+    walletAddress: address,
+    chainId: targetChainId,
+  });
 
   useEffect(() => {
-    if (chainGrid && !isChainOwner && editing) setEditing(false);
-  }, [chainGrid, isChainOwner, editing]);
+    if (!canEdit && editing) setEditing(false);
+  }, [canEdit, editing]);
 
   return (
     <>
