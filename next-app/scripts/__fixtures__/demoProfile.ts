@@ -11,7 +11,7 @@ export const DEMO_PROFILE_FIELDS: ProfileEditorState = {
   description: "CEO of Tesla, SpaceX, X & xAI. Making life multiplanetary 🚀",
   url: "https://x.com/elonmusk",
   avatar:
-    "https://upload.wikimedia.org/wikipedia/commons/3/34/Elon_Musk_Royal_Society_%28crop1%29.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/3/34/Elon_Musk_Royal_Society_%28crop2%29.jpg",
   twitter: "elonmusk",
   github: "elonmusk",
   bsky: "elonmusk.bsky.social",

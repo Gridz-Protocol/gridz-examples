@@ -8,6 +8,7 @@ import {
   resolveSpritzWidget,
   spritzSpan,
 } from "./spritz/SpritzWidgets";
+import { demoAvatarForDisplay } from "../lib/demoProfile";
 import { normalizeUrl } from "../lib/normalizeUrl";
 import "./spritz-profile.css";
 
@@ -21,6 +22,7 @@ export interface SpritzProfileProps {
 export function SpritzProfile({ grid, subject, showOwnerHints = false }: SpritzProfileProps) {
   const verification = useVerification(grid);
   const header = headerFromGrid(grid, subject);
+  const avatar = demoAvatarForDisplay(subject, header.avatar);
   const widgets = widgetCells(grid);
   const socials = socialCells(grid);
   const rootOk = verification.root === "verified";
@@ -38,9 +40,9 @@ export function SpritzProfile({ grid, subject, showOwnerHints = false }: SpritzP
 
       <section className="spritz-hero">
         <div className="spritz-hero__avatar">
-          {header.avatar ? (
+          {avatar ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={header.avatar} alt="" />
+            <img src={avatar} alt="" />
           ) : (
             <span>{header.alias.slice(0, 1).toUpperCase()}</span>
           )}
