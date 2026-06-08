@@ -136,7 +136,7 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
           {source === "draft" ? <span className="site-badge site-badge--draft">Draft</span> : null}
           <div className="profile-toolbar__actions">
             <button type="button" className="site-btn" onClick={() => setVerifyOpen(true)}>
-              Query &amp; verify
+              Verify profile
             </button>
             {canEdit ? (
               <button type="button" className="site-btn site-btn--primary" onClick={() => setEditing((v) => !v)}>
@@ -170,6 +170,7 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
       {verifyOpen ? (
         <ProfileVerifyModal
           subject={subject}
+          grid={chainGrid}
           isDraft={source === "draft"}
           onClose={() => setVerifyOpen(false)}
         />
@@ -188,7 +189,7 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
             </p>
             <div className="profile-empty__actions">
               <button type="button" className="site-btn" onClick={() => setVerifyOpen(true)}>
-                Query &amp; verify
+                Verify profile
               </button>
               <button type="button" className="site-btn site-btn--primary" onClick={() => setEditing(true)}>
                 Claim this profile

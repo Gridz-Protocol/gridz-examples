@@ -4,37 +4,69 @@ export default function VerificationPage() {
       <h1>Verification</h1>
       <p>
         Every cell on a Gridz profile can be independently verified. You don&apos;t have to trust
-        gridz.bio — you only need the Grid JSON and the open-source verifier.
+        gridz.bio — verification runs in your browser (or your own script) against Base EAS and the
+        GridzResolver.
       </p>
 
       <h2>On the website</h2>
       <p>
-        Every profile page has a <strong>Query &amp; verify</strong> button in the toolbar. It opens a
-        modal with the JSON API URL, curl example, and copy-paste <code>verifyGrid</code> snippets for
-        that specific ENS name — plus notes on checking EAS UIDs on easscan.org.
+        Every profile page has a <strong>Verify profile</strong> button in the toolbar (formerly
+        &quot;Query &amp; verify&quot;). It opens a live scanner that checks each field against on-chain
+        EAS attestations and shows a green check when verified.
       </p>
       <p>
-        Published profiles also show verification badges on each cell (✓ verified, ⛓ on-chain loaded
-        from ENS). Hover a badge for attestation format and status.
+        Published profiles also show per-field badges on hero fields, social links, and widget cards.
+        Hover a badge for attestation format and status. When all cells pass, the profile header shows{" "}
+        <strong>✓ Verified</strong>.
       </p>
       <p>
-        If you see a <strong>Draft</strong> badge, the modal explains that query/verify steps apply to
-        the published on-chain profile, not local browser edits.
+        If you see a <strong>Draft</strong> badge, verification uses the published on-chain profile,
+        not local browser edits.
       </p>
+
+      <h2>Verify API (one request)</h2>
+      <p>
+        Fetch the grid plus a full verification report — same checks as the website modal:
+      </p>
+      <pre>
+        <code>{`GET https://gridz.bio/api/verify/demo.gridz.eth
+
+{
+  "ok": true,
+  "subject": "demo.gridz.eth",
+  "grid": { ... },
+  "report": {
+    "ok": true,
+    "cells": [{ "key": "alias", "result": { "status": "verified", "proof": "eas-onchain" } }],
+    "root": { "status": "verified", "proof": "manifest" }
+  }
+}`}</code>
+      </pre>
 
       <h2>Offline verification (TypeScript)</h2>
       <p>
-        Fetch a profile from the API (or export your signed Grid), then verify with zero network
-        calls:
+        For <code>eas-onchain</code> cells loaded from the API, pass an EAS RPC context so{" "}
+        <code>verifyGrid</code> can fetch attestations from Base:
       </p>
       <pre>
         <code>{`import { verifyGrid } from "@gridz/core";
+import { createPublicClient, http } from "viem";
+import { base } from "viem/chains";
 
-const res = await fetch("https://gridz.bio/api/profile/kevin.gridz.eth");
-const { grid } = await res.json();
+const { grid } = await fetch("https://gridz.bio/api/profile/kevin.gridz.eth").then((r) => r.json());
+const client = createPublicClient({ chain: base, transport: http("https://base.publicnode.com") });
 
-const report = await verifyGrid(grid);
-// report tells you if root + every cell attestation checks out`}</code>
+const report = await verifyGrid(grid, {
+  allowDelegated: true,
+  eas: {
+    chainId: 8453,
+    easAddress: "0x4200000000000000000000000000000000000021",
+    cellSchemaUid: "0x394d8e67b1470cbdb7fa6c7d15d15d295ca81d822b55267939751a8a686abb87",
+    resolverAddress: "0x73c5e3944B780D4927c403d351A4F94875DC57B3",
+    subjectEns: "kevin.gridz.eth",
+    readContract: (args) => client.readContract(args),
+  },
+});`}</code>
       </pre>
 
       <h2>Offline verification (Python)</h2>
@@ -51,22 +83,11 @@ report = verify_grid(grid)`}</code>
         <code>{`gridz grid verify grid.json`}</code>
       </pre>
 
-      <h2>On-chain cross-check</h2>
-      <p>
-        For profiles published via gridz.bio, each cell links to an EAS attestation on Base
-        Base. Advanced users can look up the attestation UID (in the Grid JSON) on{" "}
-        <a href="https://base.easscan.org" target="_blank" rel="noreferrer">
-          easscan.org
-        </a>{" "}
-        and confirm it matches the signed value. The GridzResolver serves those values via standard
-        ENS <code>text()</code> reads.
-      </p>
-
       <h2>What verification proves</h2>
       <ul>
-        <li>The stated wallet (or key) signed each cell value.</li>
-        <li>The grid root binds all cells together under one subject.</li>
-        <li>Attestations are not expired or revoked (for EAS on-chain cells).</li>
+        <li>Each cell value matches its on-chain EAS attestation (schema, attester, not revoked).</li>
+        <li>The GridzResolver points at the same EAS UID and serves the same value via <code>text()</code>.</li>
+        <li>Inline EIP-712 payloads (drafts / exports) additionally recover the signer locally.</li>
       </ul>
       <p>
         Verification does <em>not</em> prove a human is &quot;really&quot; who they claim — it proves

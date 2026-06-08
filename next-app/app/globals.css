@@ -1652,3 +1652,126 @@ a:hover {
   padding-top: 8px;
   border-top: 1px solid var(--site-border);
 }
+
+.verify-modal--wide {
+  width: min(720px, 100%);
+}
+
+.verify-modal__scan {
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: var(--site-muted);
+}
+
+.verify-modal__error {
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  color: #fca5a5;
+  font-size: 14px;
+}
+
+.verify-modal__summary {
+  margin: 0 0 14px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fbbf24;
+}
+
+.verify-modal__summary--ok {
+  color: #28c76f;
+}
+
+.verify-modal__root {
+  margin: 14px 0 0;
+  font-size: 14px;
+  color: var(--site-muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.verify-results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 280px;
+  overflow: auto;
+}
+
+.verify-results__row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--site-border);
+  background: var(--site-bg-elevated);
+  font-size: 14px;
+}
+
+.verify-results__key {
+  font-family: var(--site-mono);
+  font-size: 13px;
+  color: var(--site-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.verify-results__link {
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.field-verify-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.field-verify-badge--compact {
+  padding: 2px 6px;
+}
+
+.field-verify-badge--verified {
+  color: #28c76f;
+  background: rgba(40, 199, 111, 0.12);
+  border-color: rgba(40, 199, 111, 0.3);
+}
+
+.field-verify-badge--onchain,
+.field-verify-badge--loading {
+  color: #60a5fa;
+  background: rgba(96, 165, 250, 0.1);
+  border-color: rgba(96, 165, 250, 0.25);
+}
+
+.field-verify-badge--warn {
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.1);
+  border-color: rgba(251, 191, 36, 0.25);
+}
+
+.field-verify-badge--failed {
+  color: #ea5455;
+  background: rgba(234, 84, 85, 0.1);
+  border-color: rgba(234, 84, 85, 0.25);
+}
+
+.field-verify-badge__label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
