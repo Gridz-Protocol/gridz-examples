@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import { isApexSiteHost, siteHomeUrl } from "../lib/subjectFromHost";
 import { WalletButton } from "./WalletButton";
 import { MyProfilesMenu } from "./MyProfilesMenu";
 import { demoProfileUrl } from "../lib/demoProfile";
@@ -10,18 +12,26 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isDocs = pathname.startsWith("/docs");
   const isForAi = pathname.startsWith("/for-ai");
+  const siteHome = siteHomeUrl();
+  const [onApexSite, setOnApexSite] = useState(false);
+
+  useEffect(() => {
+    setOnApexSite(isApexSiteHost(window.location.hostname));
+  }, []);
+
+  const isHomeActive = onApexSite && pathname === "/";
 
   return (
     <div className="site-shell">
       <header className="site-nav">
-        <Link href="/" className="site-nav__brand">
+        <a href={siteHome} className="site-nav__brand">
           <span className="site-nav__mark" aria-hidden />
           Gridz
-        </Link>
+        </a>
         <nav className="site-nav__links" aria-label="Main">
-          <Link href="/" className={`site-nav__link${pathname === "/" ? " site-nav__link--active" : ""}`}>
+          <a href={siteHome} className={`site-nav__link${isHomeActive ? " site-nav__link--active" : ""}`}>
             Home
-          </Link>
+          </a>
           <Link href="/find" className={`site-nav__link${pathname === "/find" ? " site-nav__link--active" : ""}`}>
             Find
           </Link>

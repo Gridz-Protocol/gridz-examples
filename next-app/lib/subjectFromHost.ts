@@ -14,6 +14,15 @@ export function ensFromSubdomain(host: string): string | null {
   return `${clean}.${ENS_BASE}`;
 }
 
+export function siteHomeUrl(): string {
+  return `https://${SITE_DOMAIN}`;
+}
+
+export function isApexSiteHost(host: string): boolean {
+  const h = host.split(":")[0]?.toLowerCase() ?? "";
+  return h === SITE_DOMAIN || h === `www.${SITE_DOMAIN}`;
+}
+
 export function bioUrlForEns(ensName: string): string | null {
   const base = ENS_BASE.toLowerCase();
   if (!ensName.toLowerCase().endsWith(`.${base}`)) return null;
