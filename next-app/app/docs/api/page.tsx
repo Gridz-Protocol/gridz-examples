@@ -78,9 +78,10 @@ GET https://${bio}/api/profile/kevin.gridz.eth`}</code>
           attestations.
         </li>
         <li>
-          <strong>Your wallet publishes</strong> — after EIP-712 signing, your wallet sends EAS{" "}
-          <code>attest</code> and GridzResolver <code>linkCellAttestation</code> transactions (you pay
-          gas). <code>POST /api/publish</code> remains for operator/demo flows using a registrar key only.
+          <strong>Server attests</strong> — <code>POST /api/publish</code> takes your signed Grid,
+          writes new EAS attestations for changed cells, then calls GridzResolver{" "}
+          <code>setCellAttestation</code> directly (one registrar tx per field). Uses a registrar key
+          on the server; you do not sign those transactions.
         </li>
         <li>
           <strong>Public read</strong> — this API and profile pages read attestations back from the
@@ -89,9 +90,51 @@ GET https://${bio}/api/profile/kevin.gridz.eth`}</code>
         </li>
       </ol>
       <p>
-        <code>POST /api/publish</code> is registrar-only (demo script); the gridz.bio editor publishes
-        from the browser. To publish programmatically, use the <a href="/docs/cli">CLI</a> or{" "}
+        <code>POST /api/publish</code> is called by the gridz.bio editor, not meant for arbitrary
+        third-party writes. To publish programmatically, use the <a href="/docs/cli">CLI</a> or{" "}
         <code>@gridz/sdk</code> with your own signer and sink.
+      </p>
+
+      <h2>On-chain (Base mainnet)</h2>
+      <p>gridz.bio reads and publishes via Base (chain <code>8453</code>).</p>
+      <table className="docs-table">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Address</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>GridzResolver (proxy)</td>
+            <td>
+              <code>0x73c5e3944B780D4927c403d351A4F94875DC57B3</code>
+            </td>
+          </tr>
+          <tr>
+            <td>EAS</td>
+            <td>
+              <code>0x4200000000000000000000000000000000000021</code>
+            </td>
+          </tr>
+          <tr>
+            <td>gridz.cell.v1 schema UID</td>
+            <td>
+              <code>0x394d8e67b1470cbdb7fa6c7d15d15d295ca81d822b55267939751a8a686abb87</code>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        Full deployment table:{" "}
+        <a
+          href="https://github.com/Gridz-Protocol/gridz/blob/main/specs/deployments.md"
+          target="_blank"
+          rel="noreferrer"
+        >
+          specs/deployments.md
+        </a>
+        .
       </p>
 
       <h2>Reference API server (<code>@gridz/server</code>)</h2>

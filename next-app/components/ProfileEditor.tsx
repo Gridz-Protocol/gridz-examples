@@ -7,7 +7,6 @@ import { buildProfileGrid } from "../lib/buildProfileGrid";
 import { profileCellsFromFields } from "../lib/buildProfileGrid";
 import { countCellsToSign, countFieldsToPublish } from "../lib/incrementalProfileGrid";
 import { mergeFieldPreview } from "../lib/previewGrid";
-import { publishGridViaEas } from "../lib/publishEas";
 import { saveDraftFields, saveSignedBaseline } from "../lib/drafts";
 import { fieldsFromGrid, type ProfileEditorState } from "../lib/profileFields";
 import { AvatarField } from "./AvatarField";
@@ -32,8 +31,6 @@ function shortAddr(addr: string) {
 }
 
 const GRIDZ_CHAIN_ID = Number(process.env.NEXT_PUBLIC_GRIDZ_CHAIN_ID ?? "1");
-const EAS_ADDRESS = (process.env.NEXT_PUBLIC_EAS_ADDRESS ?? "") as Hex;
-const CELL_SCHEMA = (process.env.NEXT_PUBLIC_CELL_SCHEMA ?? "") as Hex;
 
 export function ProfileEditor({
   ensName,
@@ -54,7 +51,6 @@ export function ProfileEditor({
     isCorrectChain,
     openWalletModal,
     prepareWallet,
-    publicClient,
   } = useWallet();
   const [fields, setFields] = useState<ProfileEditorState>(
     () => initialFields ?? fieldsFromGrid(initial),
@@ -97,11 +93,6 @@ export function ProfileEditor({
       setSaveMessage("Missing GRIDZ_RESOLVER — set NEXT_PUBLIC_GRIDZ_RESOLVER in env.");
       return;
     }
-    if (!EAS_ADDRESS.startsWith("0x") || !CELL_SCHEMA.startsWith("0x")) {
-      setSaveMessage("Missing NEXT_PUBLIC_EAS_ADDRESS or NEXT_PUBLIC_CELL_SCHEMA in env.");
-      return;
-    }
-
     const drafts = profileCellsFromFields(fields);
     if (drafts.length === 0) {
       setSaveMessage("Add at least a display name before publishing.");
@@ -129,24 +120,25 @@ export function ProfileEditor({
         signingBaseline,
       );
 
-      if (!publicClient) {
-        throw new Error("Network client not ready — wait a moment and try again.");
-      }
-
       setPublishUi({ phase: "publishing", cellCount: publishCount, signCount });
 
-      const result = await publishGridViaEas(grid, ensName, {
-        easAddress: EAS_ADDRESS,
-        cellSchema: CELL_SCHEMA,
-        resolverAddress: resolver,
-        publicClient,
-        walletClient: wallet.walletClient,
-        chainBaseline,
-        mode: "owner",
+      const res = await fetch("/api/publish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ensName, grid }),
       });
+      const data = (await res.json()) as {
+        ok?: boolean;
+        error?: string;
+        txCount?: number;
+        publishedCellCount?: number;
+      };
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error ?? `Publish failed (${res.status})`);
+      }
 
-      const published = result.publishedCellCount;
-      if (published === 0 && result.txCount === 0) {
+      const published = data.publishedCellCount ?? 0;
+      if (published === 0 && (data.txCount ?? 0) === 0) {
         saveDraftFields(ensName, fields, grid);
         onSaved(mergeFieldPreview(chainBaseline, fields, ensName) ?? grid, "draft");
         setPublishUi({
@@ -163,7 +155,7 @@ export function ProfileEditor({
         phase: "success",
         cellCount: published,
         signCount,
-        txCount: result.txCount,
+        txCount: data.txCount,
       });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -177,7 +169,6 @@ export function ProfileEditor({
     fields,
     onSaved,
     prepareWallet,
-    publicClient,
     resolver,
     signingBaseline,
   ]);
@@ -202,9 +193,9 @@ export function ProfileEditor({
               </span>
             </div>
             <p className="wallet-banner__sub">
-              Edit freely — drafts stay unsigned until you hit <strong>Sign &amp; publish</strong>. You pay
-              Base gas for EAS attestations and resolver links (~2 txs per changed field), plus EIP-712
-              signatures (free).
+              Edit freely — drafts stay unsigned until you hit <strong>Sign &amp; publish</strong>. Your
+              wallet signs only (free); gridz.bio covers Base gas for EAS attestations and resolver
+              links.
             </p>
           </>
         ) : (

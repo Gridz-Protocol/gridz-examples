@@ -19,7 +19,7 @@ describe("PublishProgress", () => {
   it("shows publishing progress and ETA", () => {
     render(<PublishProgress phase="publishing" ensName="alice.eth" cellCount={5} />);
     expect(screen.getByText("Publishing on Base")).toBeTruthy();
-    expect(screen.getByText(/Confirm ~10 Base transactions/)).toBeTruthy();
+    expect(screen.getByText(/gridz covers gas/)).toBeTruthy();
   });
 
   it("shows success with profile link", () => {

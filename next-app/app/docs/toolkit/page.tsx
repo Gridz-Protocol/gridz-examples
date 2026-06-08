@@ -192,6 +192,72 @@ export default function ToolkitPage() {
         resolver stores the attestation UID per <code>(node, key)</code> and serves decoded values via
         standard ENS <code>text()</code> reads.
       </p>
+      <h3>Deployed addresses (Base mainnet — gridz.bio)</h3>
+      <table className="docs-table">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Chain ID</td>
+            <td>
+              <code>8453</code> (Base)
+            </td>
+          </tr>
+          <tr>
+            <td>GridzResolver (proxy)</td>
+            <td>
+              <code>0x73c5e3944B780D4927c403d351A4F94875DC57B3</code>
+            </td>
+          </tr>
+          <tr>
+            <td>EAS</td>
+            <td>
+              <code>0x4200000000000000000000000000000000000021</code>
+            </td>
+          </tr>
+          <tr>
+            <td>EAS SchemaRegistry</td>
+            <td>
+              <code>0x4200000000000000000000000000000000000020</code>
+            </td>
+          </tr>
+          <tr>
+            <td>gridz.cell.v1 schema UID</td>
+            <td>
+              <code>0x394d8e67b1470cbdb7fa6c7d15d15d295ca81d822b55267939751a8a686abb87</code>
+            </td>
+          </tr>
+          <tr>
+            <td>Registrar (server publish)</td>
+            <td>
+              <code>0xEBE4ceb499Ad95DC1e5662E3a223Ec8cc0a555d9</code>
+            </td>
+          </tr>
+          <tr>
+            <td>EAS explorer</td>
+            <td>
+              <a href="https://base.easscan.org" target="_blank" rel="noreferrer">
+                base.easscan.org
+              </a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        Legacy L1 and testnet tables:{" "}
+        <a
+          href="https://github.com/Gridz-Protocol/gridz/blob/main/specs/deployments.md"
+          target="_blank"
+          rel="noreferrer"
+        >
+          specs/deployments.md
+        </a>
+        .
+      </p>
 
       <h2>Specs (source of truth)</h2>
       <p>

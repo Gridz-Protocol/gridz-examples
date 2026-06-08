@@ -102,9 +102,9 @@ export function PublishProgress({
             <div>
               <p className="publish-progress__title">Publishing on Base</p>
               <p className="publish-progress__sub">
-                Confirm ~{cellCount * 2} Base transaction{cellCount * 2 === 1 ? "" : "s"} in your wallet
-                ({cellCount} EAS attest{cellCount === 1 ? "" : "s"} + {cellCount} resolver link
-                {cellCount === 1 ? "" : "s"}). You pay gas. Keep this tab open.
+                gridz.bio is writing {cellCount} changed field{cellCount === 1 ? "" : "s"} on-chain
+                (EAS attestations + resolver links). You already signed — gridz covers gas. Keep this
+                tab open.
               </p>
             </div>
           </div>

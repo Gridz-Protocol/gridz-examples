@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 // EAS attest + resolver link per cell can take 1–2 minutes on any chain.
 export const maxDuration = 300;
 import type { Grid, Hex } from "@gridz/core";
-import { createPublicClient, createWalletClient, getAddress, http } from "viem";
+import { createPublicClient, createWalletClient, formatEther, getAddress, http, parseEther } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { publishGridViaEas } from "../../../lib/publishEas";
 import { loadGrid } from "../../../lib/loadGrid";
@@ -22,8 +22,10 @@ export async function POST(request: Request) {
   } catch {
     return NextResponse.json({ ok: false, error: "Invalid GRIDZ_RESOLVER or EAS_ADDRESS checksum." }, { status: 503 });
   }
-  const rpc = process.env.GRIDZ_RPC_URL ?? "https://ethereum.publicnode.com";
   const chainId = Number(process.env.GRIDZ_CHAIN_ID ?? "1");
+  const rpc =
+    process.env.GRIDZ_RPC_URL ??
+    (chainId === 8453 ? "https://base.publicnode.com" : "https://ethereum.publicnode.com");
 
   if (!registrarKey?.startsWith("0x") || !resolver?.startsWith("0x")) {
     return NextResponse.json(
@@ -56,6 +58,18 @@ export async function POST(request: Request) {
     const account = privateKeyToAccount(registrarKey as Hex);
     const publicClient = createPublicClient({ chain, transport: http(rpc) });
     const walletClient = createWalletClient({ account, chain, transport: http(rpc) });
+
+    const balance = await publicClient.getBalance({ address: account.address });
+    const minBalance = parseEther("0.0005");
+    if (balance < minBalance) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: `Registrar wallet is low on ETH (${formatEther(balance)} ETH). Top up the registrar on ${chain.name}.`,
+        },
+        { status: 503 },
+      );
+    }
 
     const chainBaseline = await loadGrid(ensName);
     const { txCount, publishedCellCount, skippedCellCount } = await publishGridViaEas(grid, ensName, {

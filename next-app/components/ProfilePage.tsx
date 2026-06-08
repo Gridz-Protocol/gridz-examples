@@ -13,7 +13,7 @@ import { mergeFieldPreview } from "../lib/previewGrid";
 import { rememberProfile } from "../lib/recentProfiles";
 import { bioUrlForEns } from "../lib/subjectFromHost";
 import { isDemoProfile } from "../lib/demoProfile";
-import { canEditProfile, isProfileSigner } from "../lib/canEditProfile";
+import { canEditProfile, isProfileSigner, isRegistrarOnlyPublish } from "../lib/canEditProfile";
 import { useWallet } from "../lib/wallet";
 
 export interface ProfilePageProps {
@@ -79,12 +79,18 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
   );
 
   const demo = isDemoProfile(subject);
-  const canEdit = canEditProfile({
-    chainGrid,
-    draftBundle,
-    walletAddress: address,
-    chainId: targetChainId,
-  });
+  const registrarAddress = process.env.NEXT_PUBLIC_REGISTRAR_ADDRESS ?? "";
+  const incompleteClaim =
+    chainGrid != null && isRegistrarOnlyPublish(chainGrid, targetChainId, registrarAddress);
+  const canEdit =
+    !demo &&
+    canEditProfile({
+      chainGrid,
+      draftBundle,
+      walletAddress: address,
+      chainId: targetChainId,
+      registrarAddress,
+    });
   const isChainOwner = isProfileSigner({
     chainGrid,
     draftBundle,
@@ -134,7 +140,11 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
             </button>
             {canEdit ? (
               <button type="button" className="site-btn site-btn--primary" onClick={() => setEditing((v) => !v)}>
-                {editing ? "Close editor" : grid ? "Edit profile" : "Claim profile"}
+                {editing
+                  ? "Close editor"
+                  : source === "none" || incompleteClaim
+                    ? "Claim profile"
+                    : "Edit profile"}
               </button>
             ) : null}
           </div>
@@ -151,7 +161,7 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
               initialFields={draftBundle?.fields ?? null}
               onSaved={onSaved}
               onPreview={onPreview}
-              isClaim={source === "none"}
+              isClaim={source === "none" || incompleteClaim}
             />
           </>
         ) : null}

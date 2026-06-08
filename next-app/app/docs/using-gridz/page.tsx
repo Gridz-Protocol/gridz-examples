@@ -66,8 +66,8 @@ export default function UsingGridzPage() {
         </li>
         <li>
           <strong>Sign &amp; publish to ENS</strong> — your wallet signs only <em>changed</em> cells plus
-          the grid root (unchanged fields reuse prior attestations), then sends EAS attestations and
-          resolver links on Base (you pay gas, ~2 txs per changed field). When done, you&apos;ll
+          the grid root (unchanged fields reuse prior attestations). Then the server writes EAS
+          attestations on Base and links each field on GridzResolver. When done, you&apos;ll
           see an <strong>On-chain</strong> badge and your profile is public everywhere.
         </li>
       </ul>
@@ -214,7 +214,7 @@ export default function UsingGridzPage() {
       <ul>
         <li>Fetch the JSON API (<code>GET /api/profile/…</code>)</li>
         <li>Run offline <code>verifyGrid()</code> in TypeScript or Python</li>
-        <li>Cross-check EAS attestation UIDs on <a href="https://base.easscan.org" target="_blank" rel="noreferrer">easscan.org</a></li>
+        <li>Cross-check EAS attestation UIDs on <a href="https://base.easscan.org" target="_blank" rel="noreferrer">base.easscan.org</a></li>
       </ul>
       <p>
         Full details: <a href="/docs/verification">Verification</a>.

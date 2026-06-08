@@ -102,3 +102,16 @@ describe("isProfileSigner", () => {
     );
   });
 });
+
+  it("allows reclaim when on-chain cells are registrar-only (no local draft)", () => {
+    const chainGrid = gridWithAttester(REGISTRAR);
+    expect(
+      canEditProfile({
+        chainGrid,
+        draftBundle: null,
+        walletAddress: WALLET,
+        chainId: CHAIN,
+        registrarAddress: REGISTRAR,
+      }),
+    ).toBe(true);
+  });

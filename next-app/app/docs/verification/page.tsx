@@ -54,7 +54,7 @@ report = verify_grid(grid)`}</code>
       <h2>On-chain cross-check</h2>
       <p>
         For profiles published via gridz.bio, each cell links to an EAS attestation on Base
-        mainnet. Advanced users can look up the attestation UID (in the Grid JSON) on{" "}
+        Base. Advanced users can look up the attestation UID (in the Grid JSON) on{" "}
         <a href="https://base.easscan.org" target="_blank" rel="noreferrer">
           easscan.org
         </a>{" "}

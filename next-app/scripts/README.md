@@ -11,7 +11,8 @@ same EAS + registrar flow as real users.
 |----------|------|
 | `GRIDZ_SIGNER_KEY` | Signs demo cells (EIP-712) — **not** the registrar |
 | `REGISTRAR_PRIVATE_KEY` or `DEPLOYER_PRIVATE_KEY` | Writes EAS attestations on-chain |
-| `GRIDZ_RESOLVER`, `EAS_ADDRESS`, `CELL_SCHEMA` | Same as production publish |
+| `GRIDZ_RESOLVER`, `EAS_ADDRESS`, `CELL_SCHEMA` | Base mainnet production (see `specs/deployments.md`) |
+| `GRIDZ_CHAIN_ID` | `8453` (Base) |
 
 Optional: `GRIDZ_DEMO_SUBJECT` (default `demo.gridz.eth`).
 

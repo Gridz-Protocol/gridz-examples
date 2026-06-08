@@ -15,8 +15,8 @@ export default function ClaimDocsPage() {
       <ul>
         <li>An Ethereum wallet (browser extension or WalletConnect).</li>
         <li>
-          A little ETH on Base for on-chain publish — you pay gas for EAS attestations and
-          resolver links (~2 transactions per changed field, plus free EIP-712 signatures).
+          No ETH required for standard claims — gridz.bio covers registrar gas on Base; you only sign
+          with your wallet.
         </li>
         <li>
           An alias that isn&apos;t taken — try <a href="/claim">gridz.bio/claim</a> to check.

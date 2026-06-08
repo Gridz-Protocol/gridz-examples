@@ -42,8 +42,10 @@ const registrarKey = (process.env.REGISTRAR_PRIVATE_KEY ?? process.env.DEPLOYER_
 const resolverRaw = process.env.GRIDZ_RESOLVER as Hex | undefined;
 const easRaw = process.env.EAS_ADDRESS as Hex | undefined;
 const cellSchema = process.env.CELL_SCHEMA as Hex | undefined;
-const rpc = process.env.GRIDZ_RPC_URL ?? "https://ethereum.publicnode.com";
-const chainId = Number(process.env.GRIDZ_CHAIN_ID ?? "1");
+const chainId = Number(process.env.GRIDZ_CHAIN_ID ?? "8453");
+const rpc =
+  process.env.GRIDZ_RPC_URL ??
+  (chainId === 8453 ? "https://base.publicnode.com" : "https://ethereum.publicnode.com");
 
 
 async function main() {

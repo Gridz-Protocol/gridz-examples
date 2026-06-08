@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { FOR_AI_LINKS } from "../../lib/forAiContent";
+import { GRIDZ_BASE_MAINNET } from "../../lib/gridzDeployments";
 
 const ENS_BASE = process.env.NEXT_PUBLIC_GRIDZ_ENS_BASE ?? "gridz.eth";
 const SITE = process.env.NEXT_PUBLIC_SITE_DOMAIN ?? "gridz.bio";
@@ -75,6 +76,63 @@ export default function ForAiPage() {
             </li>
           ))}
         </ul>
+      </section>
+
+      <section className="for-ai-section">
+        <h2>On-chain (Base mainnet)</h2>
+        <p>
+          gridz.bio publishes to <strong>Base</strong> (chain <code>{GRIDZ_BASE_MAINNET.chainId}</code>).
+          Subjects remain <code>*.gridz.eth</code>; the resolver is read via Base RPC.
+        </p>
+        <table className="docs-table">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Address</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>GridzResolver (proxy)</td>
+              <td>
+                <code>{GRIDZ_BASE_MAINNET.gridzResolver}</code>
+              </td>
+            </tr>
+            <tr>
+              <td>EAS</td>
+              <td>
+                <code>{GRIDZ_BASE_MAINNET.eas}</code>
+              </td>
+            </tr>
+            <tr>
+              <td>EAS SchemaRegistry</td>
+              <td>
+                <code>{GRIDZ_BASE_MAINNET.easSchemaRegistry}</code>
+              </td>
+            </tr>
+            <tr>
+              <td>gridz.cell.v1 schema UID</td>
+              <td>
+                <code>{GRIDZ_BASE_MAINNET.cellSchema}</code>
+              </td>
+            </tr>
+            <tr>
+              <td>Registrar (editor publish)</td>
+              <td>
+                <code>{GRIDZ_BASE_MAINNET.registrarAddress}</code>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          <a href={FOR_AI_LINKS.specs + "/deployments.md"} target="_blank" rel="noreferrer">
+            specs/deployments.md
+          </a>{" "}
+          ·{" "}
+          <a href={GRIDZ_BASE_MAINNET.easExplorer} target="_blank" rel="noreferrer">
+            base.easscan.org
+          </a>
+        </p>
       </section>
 
       <section className="for-ai-section">

@@ -1,4 +1,4 @@
-/** ~14s per on-chain tx (EAS attest + resolver link, both from user wallet). */
+/** ~14s per on-chain tx (EAS attest + resolver link, both from server registrar). */
 const MS_PER_TX = 14_000;
 
 export function estimatePublishTxCount(cellCount: number): number {

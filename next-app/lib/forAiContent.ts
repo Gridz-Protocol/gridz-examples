@@ -31,7 +31,7 @@ export function buildLlmsTxt(): string {
   return `# Gridz
 
 > Gridz is an open framework for cryptographically-attested profiles on Base.
-> Identity: \`alias.${ENS_BASE}\` · Public page: \`https://alias.${SITE}\` · Every cell is wallet-signed (EIP-712) and published via EAS on mainnet.
+> Identity: \`alias.${ENS_BASE}\` · Public page: \`https://alias.${SITE}\` · Every cell is wallet-signed (EIP-712) and published via EAS on Base (chain 8453). gridz.bio covers registrar gas; users sign EIP-712 only.
 
 This file is for LLMs, agents, and automated tools. Start here before integrating with Gridz.
 
@@ -47,6 +47,21 @@ This file is for LLMs, agents, and automated tools. Start here before integratin
 - [Demo profile](${FOR_AI_LINKS.demoProfile}) — Spritz-style widget showcase at demo.gridz.eth
 - Refresh: pnpm demo:publish (requires GRIDZ_SIGNER_KEY + registrar env)
 - Verify: pnpm demo:verify
+
+
+## On-chain (Base mainnet — gridz.bio production)
+
+| Item | Value |
+|------|-------|
+| Chain ID | \`8453\` (Base) |
+| GridzResolver (proxy) | \`0x73c5e3944B780D4927c403d351A4F94875DC57B3\` |
+| EAS | \`0x4200000000000000000000000000000000000021\` |
+| EAS SchemaRegistry | \`0x4200000000000000000000000000000000000020\` |
+| gridz.cell.v1 schema UID | \`0x394d8e67b1470cbdb7fa6c7d15d15d295ca81d822b55267939751a8a686abb87\` |
+| Registrar (editor publish) | \`0xEBE4ceb499Ad95DC1e5662E3a223Ec8cc0a555d9\` |
+| EAS explorer | https://base.easscan.org |
+
+Full table: [specs/deployments.md](${FOR_AI_LINKS.specs}/deployments.md)
 
 ## Read a profile (primary integration)
 
@@ -199,6 +214,18 @@ report = verify_grid(grid)
 }
 \`\`\`
 
+
+## On-chain deployments (Base mainnet)
+
+| Item | Value |
+|------|-------|
+| Chain ID | \`8453\` |
+| GridzResolver | \`0x73c5e3944B780D4927c403d351A4F94875DC57B3\` |
+| EAS | \`0x4200000000000000000000000000000000000021\` |
+| cell schema UID | \`0x394d8e67b1470cbdb7fa6c7d15d15d295ca81d822b55267939751a8a686abb87\` |
+
+Spec: ${FOR_AI_LINKS.specs}/deployments.md
+
 ## Read API (gridz.bio)
 
 | Endpoint | Method | Notes |
@@ -219,7 +246,7 @@ report = verify_grid(grid)
    - \`EnsSink.writeGrid(grid)\` (\`@gridz/sinks\`)
    - Self-hosted \`@gridz/server\` PUT endpoints
 
-Human gridz.bio flow: wallet signs EIP-712 in browser → wallet sends EAS attest + resolver linkCellAttestation (user gas).
+Human gridz.bio flow: wallet signs EIP-712 in browser → editor POSTs signed grid to registrar /api/publish (server gas on Base).
 
 ## Agent identity cells
 
@@ -290,7 +317,7 @@ Monorepo: ${FOR_AI_LINKS.github} · TS: ${FOR_AI_LINKS.githubJs} · Py: ${FOR_AI
 - Treat \`POST /api/publish\` as editor-only unless you operate the registrar
 - \`ok: false\` from profile API means on-chain empty — not a bug
 - Browser **Draft** profiles are localStorage only; API won't see them
-- gridz.bio editor: **Save draft** (unsigned localStorage) → **Sign & publish** (EIP-712 + user-paid EAS/link txs). Unclaimed names stay editable until on-chain publish.
+- gridz.bio editor: **Save draft** (unsigned localStorage) → **Sign & publish** (EIP-712 signatures + server EAS/link on Base). Unclaimed names stay editable until on-chain publish.
 - Widget keys are \`gridz.*\`; social keys use reverse-dot (\`com.github\`)
 
 ## Further reading
