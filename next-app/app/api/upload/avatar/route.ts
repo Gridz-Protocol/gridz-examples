@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { pinataConfigured, uploadToPinata } from "../../../../lib/pinataUpload";
 
-const MAX_BYTES = 1_500_000;
+const MAX_BYTES = 2_000_000;
 const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 export async function POST(request: Request) {
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "Use JPEG, PNG, or WebP." }, { status: 400 });
   }
   if (file.size > MAX_BYTES) {
-    return NextResponse.json({ ok: false, error: "Image must be under 1.5 MB." }, { status: 400 });
+    return NextResponse.json({ ok: false, error: "Image must be under 2 MB." }, { status: 400 });
   }
 
   const safe = ensName.toLowerCase().replace(/[^a-z0-9.-]/g, "");

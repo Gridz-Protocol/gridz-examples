@@ -6,14 +6,14 @@ export interface PinataUploadResult {
   url: string;
 }
 
-function gatewayHost(): string {
-  const raw = process.env.PINATA_GATEWAY?.trim();
-  if (!raw) return "gateway.pinata.cloud";
-  return raw.replace(/^https?:\/\//, "").replace(/\/$/, "");
-}
+export function ipfsGatewayUrl(cid: string): string {
+  const raw = (process.env.PINATA_GATEWAY_URL ?? process.env.PINATA_GATEWAY)?.trim();
+  if (!raw) return `https://gateway.pinata.cloud/ipfs/${cid}`;
 
-function ipfsUrl(cid: string): string {
-  return `https://${gatewayHost()}/ipfs/${cid}`;
+  let base = raw.replace(/\/$/, "");
+  if (!/^https?:\/\//i.test(base)) base = `https://${base}`;
+  if (base.endsWith("/ipfs")) return `${base}/${cid}`;
+  return `${base}/ipfs/${cid}`;
 }
 
 function resolveBearer(): string | null {
@@ -86,7 +86,7 @@ async function uploadV3(
   const cid = json.data?.cid;
   if (!cid) throw new Error("Pinata response missing CID");
 
-  return { cid, url: ipfsUrl(cid) };
+  return { cid, url: ipfsGatewayUrl(cid) };
 }
 
 async function uploadLegacy(
@@ -122,5 +122,5 @@ async function uploadLegacy(
   const cid = json.IpfsHash;
   if (!cid) throw new Error("Pinata response missing IpfsHash");
 
-  return { cid, url: ipfsUrl(cid) };
+  return { cid, url: ipfsGatewayUrl(cid) };
 }
