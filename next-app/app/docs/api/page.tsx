@@ -79,9 +79,9 @@ GET https://${bio}/api/profile/kevin.gridz.eth`}</code>
         </li>
         <li>
           <strong>Server attests</strong> — <code>POST /api/publish</code> takes your signed Grid,
-          writes new EAS attestations for changed cells, and batches GridzResolver{" "}
-          <code>setCellAttestation</code> calls via Multicall3. Uses a registrar key on the server;
-          you do not sign those transactions.
+          writes new EAS attestations for changed cells, then calls GridzResolver{" "}
+          <code>setCellAttestation</code> directly (one registrar tx per field). Uses a registrar key
+          on the server; you do not sign those transactions.
         </li>
         <li>
           <strong>Public read</strong> — this API and profile pages read attestations back from the

@@ -3,7 +3,6 @@ import { getUIDsFromAttestReceipt } from "@ethereum-attestation-service/eas-sdk"
 import type { PublicClient, WalletClient } from "viem";
 import {
   encodeAbiParameters,
-  encodeFunctionData,
   getAddress,
   namehash,
   parseAbiParameters,
@@ -56,38 +55,6 @@ const RESOLVER_ABI = [
     outputs: [],
   },
 ] as const;
-
-const MULTICALL3_ABI = [
-  {
-    name: "aggregate3",
-    type: "function",
-    stateMutability: "payable",
-    inputs: [
-      {
-        name: "calls",
-        type: "tuple[]",
-        components: [
-          { name: "target", type: "address" },
-          { name: "allowFailure", type: "bool" },
-          { name: "callData", type: "bytes" },
-        ],
-      },
-    ],
-    outputs: [
-      {
-        name: "returnData",
-        type: "tuple[]",
-        components: [
-          { name: "success", type: "bool" },
-          { name: "returnData", type: "bytes" },
-        ],
-      },
-    ],
-  },
-] as const;
-
-const MULTICALL3_ADDRESS = "0xcA11bde05977b3631167028862bE2a173976CA11" as Hex;
-const LINK_BATCH_SIZE = 40;
 
 const ZERO_HASH = `0x${"0".repeat(64)}` as Hex;
 
@@ -203,7 +170,11 @@ async function attestCells(
   return results;
 }
 
-async function batchLinkCells(
+/**
+ * Link EAS UIDs on GridzResolver. Calls are sent directly from the registrar — not via
+ * Multicall3, because setCellAttestation is onlyRole(REGISTRAR) on msg.sender.
+ */
+async function linkCells(
   attestations: CellPublishResult[],
   opts: {
     resolverAddress: Hex;
@@ -216,39 +187,30 @@ async function batchLinkCells(
   const account = walletClient.account;
   if (!account) throw new Error("Registrar wallet account required");
   const resolver = getAddress(resolverAddress);
-  let batchTxCount = 0;
+  let linkTxCount = 0;
 
-  for (let offset = 0; offset < attestations.length; offset += LINK_BATCH_SIZE) {
-    const chunk = attestations.slice(offset, offset + LINK_BATCH_SIZE);
-    console.log(
-      `[publish] batch link ${Math.floor(offset / LINK_BATCH_SIZE) + 1}/${Math.ceil(attestations.length / LINK_BATCH_SIZE)} (${chunk.length} cells)…`,
-    );
-    const calls = chunk.map(({ key, uid }) => ({
-      target: resolver,
-      allowFailure: false,
-      callData: encodeFunctionData({
-        abi: RESOLVER_ABI,
-        functionName: "setCellAttestation",
-        args: [node, key, uid],
-      }),
-    }));
-
+  for (let i = 0; i < attestations.length; i++) {
+    const { key, uid } = attestations[i]!;
+    console.log(`[publish] link ${i + 1}/${attestations.length} ${key}…`);
     const hash = await walletClient.writeContract({
       account,
       chain: walletClient.chain,
-      address: MULTICALL3_ADDRESS,
-      abi: MULTICALL3_ABI,
-      functionName: "aggregate3",
-      args: [calls],
+      address: resolver,
+      abi: RESOLVER_ABI,
+      functionName: "setCellAttestation",
+      args: [node, key, uid],
     });
     const receipt = await publicClient.waitForTransactionReceipt({ hash, timeout: 600_000 });
     if (receipt.status !== "success") {
-      throw new Error(`Batched setCellAttestation reverted (tx ${hash})`);
+      throw new Error(
+        `setCellAttestation for ${key} reverted (tx ${hash}). ` +
+          `EAS uid ${uid} was attested but not linked — retry publish or link manually.`,
+      );
     }
-    batchTxCount += 1;
+    linkTxCount += 1;
   }
 
-  return batchTxCount;
+  return linkTxCount;
 }
 
 export async function publishGridViaEas(
@@ -281,7 +243,7 @@ export async function publishGridViaEas(
   }
 
   const attestations = await attestCells(ordered, { easAddress, cellSchema, publicClient, walletClient });
-  const linkBatches = await batchLinkCells(attestations, {
+  const linkTxCount = await linkCells(attestations, {
     resolverAddress,
     node,
     publicClient,
@@ -290,7 +252,7 @@ export async function publishGridViaEas(
 
   const uids = attestations.map((a) => a.uid);
   return {
-    txCount: ordered.length + linkBatches,
+    txCount: ordered.length + linkTxCount,
     uids,
     publishedCellCount: ordered.length,
     skippedCellCount,

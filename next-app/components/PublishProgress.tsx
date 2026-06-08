@@ -102,8 +102,8 @@ export function PublishProgress({
             <div>
               <p className="publish-progress__title">Publishing to Ethereum</p>
               <p className="publish-progress__sub">
-                Batched on-chain publish — {cellCount} EAS attest{cellCount === 1 ? "" : "s"}, then resolver
-                links in one multicall. Unchanged fields are skipped. Keep this tab open.
+                On-chain publish — {cellCount} EAS attest{cellCount === 1 ? "" : "s"}, then resolver
+                links (one tx per field). Unchanged fields are skipped. Keep this tab open.
               </p>
             </div>
           </div>
