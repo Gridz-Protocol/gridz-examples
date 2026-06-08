@@ -21,15 +21,21 @@ export interface SpritzProfileProps {
   subject: string;
   /** Show editor hints (e.g. empty widget state) — only for the profile owner. */
   showOwnerHints?: boolean;
+  /** When false (e.g. local draft), hide on-chain verify badges. */
+  showVerification?: boolean;
 }
 
 const HERO_VERIFY_KEYS = ["alias", "description", "avatar", "url", "header"] as const;
 
-export function SpritzProfile({ grid, subject, showOwnerHints = false }: SpritzProfileProps) {
-  const onChain = gridHasEasCells(grid);
+export function SpritzProfile({ grid, subject, showOwnerHints = false, showVerification = true }: SpritzProfileProps) {
+  const onChain = showVerification && gridHasEasCells(grid);
   const serverVerification = useServerVerification(subject, onChain);
   const localVerification = useVerification(grid);
-  const verification = onChain ? serverVerification : localVerification;
+  const verification = !showVerification
+    ? { loading: false, cells: {}, root: "unsupported" as const, report: null, ok: false }
+    : onChain
+      ? serverVerification
+      : localVerification;
 
   const header = headerFromGrid(grid, subject);
   const avatar = demoAvatarForDisplay(subject, header.avatar);

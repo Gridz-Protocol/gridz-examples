@@ -177,7 +177,7 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
       ) : null}
 
       {grid ? (
-        <SpritzProfile grid={grid} subject={subject} showOwnerHints={isChainOwner} />
+        <SpritzProfile grid={grid} subject={subject} showOwnerHints={isChainOwner} showVerification={source === "chain"} />
       ) : (
         <div className="profile-layout">
           <div className="profile-empty">

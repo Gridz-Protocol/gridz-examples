@@ -8,6 +8,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { publishGridViaEas } from "../../../lib/publishEas";
 import { loadGrid } from "../../../lib/loadGrid";
 import { gridzChainForId } from "../../../lib/gridzChain";
+import { friendlyPublishError } from "../../../lib/publishTx";
 
 export async function POST(request: Request) {
   const registrarKey = process.env.REGISTRAR_PRIVATE_KEY ?? process.env.DEPLOYER_PRIVATE_KEY;
@@ -84,7 +85,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ ok: true, txCount, publishedCellCount, skippedCellCount });
   } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
-    return NextResponse.json({ ok: false, error: msg }, { status: 500 });
+    return NextResponse.json({ ok: false, error: friendlyPublishError(e) }, { status: 500 });
   }
 }

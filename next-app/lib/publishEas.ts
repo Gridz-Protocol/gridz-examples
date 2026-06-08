@@ -1,6 +1,7 @@
 import { algoForFormat, decodeBundle, valueHash, type Cell, type Grid, type Hex } from "@gridz/core";
 import { getUIDsFromAttestReceipt } from "@ethereum-attestation-service/eas-sdk";
 import type { PublicClient, WalletClient } from "viem";
+import { waitForClearNonce, writeContractReliable } from "./publishTx";
 import {
   encodeAbiParameters,
   getAddress,
@@ -168,9 +169,9 @@ export async function attestCells(
       },
     } as const;
 
-    const attestHash = await walletClient.writeContract({
-      account,
-      chain: walletClient.chain,
+    const attestHash = await writeContractReliable({
+      walletClient,
+      publicClient,
       address: eas,
       abi: EAS_ABI,
       functionName: "attest",
@@ -209,9 +210,9 @@ export async function linkCells(
   for (let i = 0; i < attestations.length; i++) {
     const { key, uid } = attestations[i]!;
     onProgress?.(i + 1, attestations.length, key);
-    const hash = await walletClient.writeContract({
-      account,
-      chain: walletClient.chain,
+    const hash = await writeContractReliable({
+      walletClient,
+      publicClient,
       address: resolver,
       abi: ownerMode ? RESOLVER_OWNER_ABI : RESOLVER_REGISTRAR_ABI,
       functionName: ownerMode ? "linkCellAttestation" : "setCellAttestation",
@@ -257,6 +258,10 @@ export async function publishGridViaEas(
 ): Promise<{ txCount: number; uids: Hex[]; publishedCellCount: number; skippedCellCount: number }> {
   const { easAddress, cellSchema, resolverAddress, publicClient, walletClient, mode = "owner" } = opts;
   const node = namehash(ensName);
+
+  const account = walletClient.account;
+  if (!account) throw new Error("Wallet account required");
+  await waitForClearNonce(publicClient, account.address);
 
   const ordered = cellsToPublish(grid, opts.chainBaseline);
   const skippedCellCount = grid.cells.length - ordered.length;
