@@ -1,11 +1,10 @@
 "use client";
 
-import { useMemo } from "react";
 import type { Grid, VerifyProof } from "@gridz/core";
 import { themeToCssVars } from "@gridz/react";
 import { useVerification, type BadgeStatus } from "@gridz/react";
 import { headerFromGrid, socialCells, widgetCells } from "../lib/profileLayout";
-import { productionVerifyContext } from "../lib/verifyContext";
+import { gridHasEasCells, useServerVerification } from "../lib/useServerVerification";
 import { verifyStatusMeta } from "../lib/verificationUi";
 import {
   resolveSpritzWidget,
@@ -27,8 +26,11 @@ export interface SpritzProfileProps {
 const HERO_VERIFY_KEYS = ["alias", "description", "avatar", "url", "header"] as const;
 
 export function SpritzProfile({ grid, subject, showOwnerHints = false }: SpritzProfileProps) {
-  const verifyCtx = useMemo(() => productionVerifyContext(subject), [subject]);
-  const verification = useVerification(grid, verifyCtx);
+  const onChain = gridHasEasCells(grid);
+  const serverVerification = useServerVerification(subject, onChain);
+  const localVerification = useVerification(grid);
+  const verification = onChain ? serverVerification : localVerification;
+
   const header = headerFromGrid(grid, subject);
   const avatar = demoAvatarForDisplay(subject, header.avatar);
   const widgets = widgetCells(grid);
@@ -43,6 +45,9 @@ export function SpritzProfile({ grid, subject, showOwnerHints = false }: SpritzP
   const cellResult = (cellId: string) =>
     verification.report?.cells.find((c) => c.id === cellId)?.result;
 
+  const badgeStatus = (cellId: string): BadgeStatus =>
+    verification.loading ? "loading" : (verification.cells[cellId] ?? "unsupported");
+
   return (
     <div className="spritz-profile" style={themeToCssVars(grid.theme)}>
       {header.header ? (
@@ -55,10 +60,10 @@ export function SpritzProfile({ grid, subject, showOwnerHints = false }: SpritzP
       <section className="spritz-hero">
         <div className="spritz-hero__avatar-wrap">
           <ProfileAvatar src={avatar} fallbackLetter={header.alias} />
-          {cellResult("avatar") ? (
+          {heroFields.some((c) => c.key === "avatar") ? (
             <FieldVerifyBadge
               compact
-              status={verification.cells.avatar ?? "loading"}
+              status={badgeStatus("avatar")}
               proof={cellResult("avatar")?.proof}
               reason={cellResult("avatar")?.reason}
             />
@@ -81,7 +86,7 @@ export function SpritzProfile({ grid, subject, showOwnerHints = false }: SpritzP
                     <span className="spritz-hero__verify-key">{labelForKey(cell.key)}</span>
                     <FieldVerifyBadge
                       compact
-                      status={verification.cells[cell.id] ?? "loading"}
+                      status={badgeStatus(cell.id)}
                       proof={result?.proof}
                       reason={result?.reason}
                     />
@@ -119,7 +124,7 @@ export function SpritzProfile({ grid, subject, showOwnerHints = false }: SpritzP
                 <div key={cell.id} className="spritz-hero__social">
                   <FieldVerifyBadge
                     compact
-                    status={verification.cells[cell.id] ?? "loading"}
+                    status={badgeStatus(cell.id)}
                     proof={result?.proof}
                     reason={result?.reason}
                   />
@@ -144,7 +149,7 @@ export function SpritzProfile({ grid, subject, showOwnerHints = false }: SpritzP
           widgets.map((cell) => {
             const W = resolveSpritzWidget(cell);
             const result = cellResult(cell.id);
-            const badge = cellBadge(verification.cells[cell.id] ?? "loading", result?.proof, result?.reason);
+            const badge = cellBadge(badgeStatus(cell.id), result?.proof, result?.reason);
             return (
               <article
                 key={cell.id}

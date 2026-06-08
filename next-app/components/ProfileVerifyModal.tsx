@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { Grid, GridVerifyResult } from "@gridz/core";
-import { verifyGrid } from "@gridz/core";
 import {
   curlFetchSnippet,
   profileApiDocsUrl,
@@ -12,7 +11,6 @@ import {
   verifyPythonSnippet,
   verifyTypeScriptSnippet,
 } from "../lib/profileVerifyGuide";
-import { productionVerifyContext } from "../lib/verifyContext";
 import { easExplorerAttestationUrl, verifyStatusMeta } from "../lib/verificationUi";
 import { FieldVerifyBadge } from "./FieldVerifyBadge";
 
@@ -41,7 +39,6 @@ export function ProfileVerifyModal({
   const [error, setError] = useState<string | null>(null);
   const [checkedCount, setCheckedCount] = useState(0);
 
-  const verifyCtx = useMemo(() => productionVerifyContext(subject), [subject]);
   const apiUrl = profileApiUrl(subject);
   const verifyApiUrl = profileVerifyApiUrl(subject);
 
@@ -71,27 +68,26 @@ export function ProfileVerifyModal({
       setCheckedCount(0);
 
       try {
-        let grid = gridProp ?? null;
-        if (!grid) {
-          const res = await fetch(apiUrl);
-          const data = (await res.json()) as { ok?: boolean; grid?: Grid; error?: string };
-          if (!data.ok || !data.grid) {
-            throw new Error(data.error ?? "Profile not published on-chain yet");
-          }
-          grid = data.grid;
+        const res = await fetch(verifyApiUrl);
+        const data = (await res.json()) as {
+          grid?: Grid;
+          report?: GridVerifyResult;
+          error?: string;
+        };
+        if (!data.report || !data.grid) {
+          throw new Error(data.error ?? "Profile not published on-chain yet");
         }
-        setResolvedGrid(grid);
 
-        const cells = grid.cells.filter((c) => c.is_visible && !c.key.startsWith("gridz.att["));
+        const cells = data.grid.cells.filter((c) => c.is_visible && !c.key.startsWith("gridz.att["));
         for (let i = 0; i < cells.length; i++) {
           if (cancelled) return;
           setCheckedCount(i + 1);
           await new Promise((r) => setTimeout(r, 40));
         }
 
-        const result = await verifyGrid(grid, verifyCtx);
         if (cancelled) return;
-        setReport(result);
+        setResolvedGrid(data.grid);
+        setReport(data.report);
         setPhase("done");
         setCheckedCount(cells.length);
       } catch (e) {
@@ -105,7 +101,7 @@ export function ProfileVerifyModal({
     return () => {
       cancelled = true;
     };
-  }, [apiUrl, gridProp, verifyCtx]);
+  }, [verifyApiUrl]);
 
   const visibleCells = report?.cells ?? [];
   const verifiedCount = visibleCells.filter((c) => c.result.ok).length;
