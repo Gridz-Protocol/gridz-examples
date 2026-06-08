@@ -5,6 +5,9 @@ import type { Grid } from "@gridz/core";
 import { useWallet, walletChainLabel } from "../lib/wallet";
 import { buildProfileGrid } from "../lib/buildProfileGrid";
 import { saveDraft } from "../lib/drafts";
+import { fieldsFromGrid, type ProfileEditorState } from "../lib/profileFields";
+import { AvatarField } from "./AvatarField";
+import { ProfileWidgetFields } from "./ProfileWidgetFields";
 import type { Hex } from "viem";
 
 export interface ProfileEditorProps {
@@ -12,16 +15,6 @@ export interface ProfileEditorProps {
   initial?: Grid | null;
   onSaved: (grid: Grid, source: "draft" | "chain") => void;
   isClaim?: boolean;
-}
-
-function fieldsFromGrid(grid: Grid | null | undefined) {
-  const get = (key: string) =>
-    (grid?.cells.find((c) => c.key === key)?.value as string | undefined) ?? "";
-  return {
-    alias: get("alias"),
-    description: get("description"),
-    url: get("url"),
-  };
 }
 
 function shortAddr(addr: string) {
@@ -41,7 +34,7 @@ export function ProfileEditor({ ensName, initial, onSaved, isClaim = false }: Pr
     openWalletModal,
     prepareWallet,
   } = useWallet();
-  const [fields, setFields] = useState(() => fieldsFromGrid(initial));
+  const [fields, setFields] = useState<ProfileEditorState>(() => fieldsFromGrid(initial));
   const [busy, setBusy] = useState<"save" | "publish" | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -79,8 +72,9 @@ export function ProfileEditor({ ensName, initial, onSaved, isClaim = false }: Pr
           return;
         }
 
+        const cellCount = grid.cells.length;
         setMessage(
-          "Signed. The Gridz registrar is submitting on-chain EAS attestations (6 transactions, usually 1–2 minutes). Do not close this tab.",
+          `Signed. The Gridz registrar is submitting on-chain EAS attestations (${cellCount} cells — usually 1–3 minutes). Do not close this tab.`,
         );
 
         const res = await fetch("/api/publish", {
@@ -112,6 +106,7 @@ export function ProfileEditor({ ensName, initial, onSaved, isClaim = false }: Pr
   );
 
   const walletReady = Boolean(isConnected && address && isCorrectChain);
+  const formDisabled = busy !== null;
 
   return (
     <section className="profile-editor">
@@ -130,7 +125,8 @@ export function ProfileEditor({ ensName, initial, onSaved, isClaim = false }: Pr
               </span>
             </div>
             <p className="wallet-banner__sub">
-              Your wallet will sign the profile. Click Claim &amp; publish when your fields look right.
+              Your wallet signs each field you add (name, avatar, widgets, etc.). More fields = more
+              signature prompts.
             </p>
           </>
         ) : (
@@ -144,7 +140,7 @@ export function ProfileEditor({ ensName, initial, onSaved, isClaim = false }: Pr
               type="button"
               className="site-btn site-btn--primary"
               onClick={openWalletModal}
-              disabled={connecting || busy !== null}
+              disabled={connecting || formDisabled}
             >
               {connecting
                 ? "Connecting…"
@@ -156,6 +152,13 @@ export function ProfileEditor({ ensName, initial, onSaved, isClaim = false }: Pr
         )}
       </div>
 
+      <AvatarField
+        ensName={ensName}
+        value={fields.avatar}
+        onChange={(avatar) => setFields((f) => ({ ...f, avatar }))}
+        disabled={formDisabled}
+      />
+
       <div className="site-field">
         <label className="site-label" htmlFor="alias">
           Display name
@@ -166,6 +169,7 @@ export function ProfileEditor({ ensName, initial, onSaved, isClaim = false }: Pr
           value={fields.alias}
           onChange={(e) => setFields((f) => ({ ...f, alias: e.target.value }))}
           placeholder="Kevin"
+          disabled={formDisabled}
         />
       </div>
       <div className="site-field">
@@ -179,6 +183,7 @@ export function ProfileEditor({ ensName, initial, onSaved, isClaim = false }: Pr
           value={fields.description}
           onChange={(e) => setFields((f) => ({ ...f, description: e.target.value }))}
           placeholder="What you do, in one line."
+          disabled={formDisabled}
         />
       </div>
       <div className="site-field">
@@ -191,14 +196,18 @@ export function ProfileEditor({ ensName, initial, onSaved, isClaim = false }: Pr
           value={fields.url}
           onChange={(e) => setFields((f) => ({ ...f, url: e.target.value }))}
           placeholder="https://"
+          disabled={formDisabled}
         />
       </div>
+
+      <ProfileWidgetFields fields={fields} onChange={setFields} disabled={formDisabled} />
+
       <div className="profile-editor__actions">
         <button
           type="button"
           className="site-btn"
           onClick={() => void runWithWallet("save")}
-          disabled={busy !== null}
+          disabled={formDisabled}
         >
           {busy === "save" ? "Signing…" : walletReady ? "Sign & save draft" : "Connect & sign draft"}
         </button>
@@ -206,7 +215,7 @@ export function ProfileEditor({ ensName, initial, onSaved, isClaim = false }: Pr
           type="button"
           className="site-btn site-btn--primary"
           onClick={() => void runWithWallet("publish")}
-          disabled={busy !== null}
+          disabled={formDisabled}
         >
           {busy === "publish"
             ? "Publishing on-chain…"
@@ -219,9 +228,7 @@ export function ProfileEditor({ ensName, initial, onSaved, isClaim = false }: Pr
                 : "Connect & publish"}
         </button>
       </div>
-      {message ? (
-        <p className="profile-editor__message">{message}</p>
-      ) : null}
+      {message ? <p className="profile-editor__message">{message}</p> : null}
     </section>
   );
 }

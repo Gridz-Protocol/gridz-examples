@@ -2,34 +2,86 @@ export default function ConceptsPage() {
   return (
     <>
       <h1>Concepts</h1>
-      <h2>Grid, cell, subject</h2>
       <p>
-        A <strong>Grid</strong> is <code>{`{ subject, theme, layout, cells[] }`}</code>. A{" "}
-        <strong>Cell</strong> is a typed key-value pair with its own attestation. A{" "}
-        <strong>Subject</strong> is a human, agent, or organization identified by a DID.
+        A few terms that show up across gridz.bio, the API, and the open-source packages. No
+        blockchain expertise required.
       </p>
-      <h2>Attestations</h2>
+
+      <h2>Grid</h2>
       <p>
-        Every cell is signed. Formats include EAS (on/offchain), raw EIP-712, JWS (ed25519), and COSE
-        (WebAuthn). Verification recovers the signer regardless of format.
+        Your profile as structured data: <code>{`{ subject, theme, cells[], root_attestation }`}</code>
+        . The Grid is what gets signed, published, fetched, and rendered. One Grid per identity.
       </p>
-      <h2>Sinks are projections</h2>
+
+      <h2>Cell</h2>
       <p>
-        ENS is the primary sink. A sink stores where a projection landed — the signed attestation
-        remains authoritative.
+        A single field in your profile — e.g. <code>alias</code>, <code>description</code>,{" "}
+        <code>url</code>, or a widget like <code>gridz.stats</code>. Each cell has a key, a value, a
+        position on the layout, and its <strong>own attestation</strong> (its own signature).
       </p>
-      <h2>gridz.eth subnames</h2>
+
+      <h2>Subject</h2>
       <p>
-        Users get names as <strong>subnames of gridz.eth</strong> — e.g. <code>kevin.gridz.eth</code>.
-        The GridzResolver answers ENSIP-10 wildcard reads for every subname via EAS attestations.
+        Who the Grid belongs to: a human, AI agent, or organization. On gridz.bio this is usually an
+        ENS name (<code>kevin.gridz.eth</code>) with a matching DID (<code>did:ens:kevin.gridz.eth</code>
+        ).
       </p>
-      <h2>gridz.bio URLs</h2>
+
+      <h2>Attestation</h2>
       <p>
-        <code>kevin.gridz.bio</code> rewrites to the same profile as <code>kevin.gridz.eth</code> for
-        sharing and discovery.
+        Cryptographic proof that a specific key signed a specific value at a specific time. Formats
+        include:
       </p>
+      <ul>
+        <li>
+          <strong>EIP-712</strong> — what your browser wallet signs at claim time.
+        </li>
+        <li>
+          <strong>EAS on-chain</strong> — what gridz.bio writes to Ethereum when you publish (wraps
+          your signature in an Ethereum Attestation Service record).
+        </li>
+        <li>
+          <strong>JWS / COSE</strong> — for passkeys and other signers in the broader framework.
+        </li>
+      </ul>
+      <p>
+        The attestation is the source of truth. Everything else — this website, the API, a database —
+        is just a <em>view</em> of it.
+      </p>
+
+      <h2>Sink</h2>
+      <p>
+        A place a signed Grid gets <em>projected</em> to — ENS, SQLite, Postgres, S3, etc. For
+        gridz.bio users the sink is <strong>ENS on Ethereum mainnet</strong>, backed by the
+        GridzResolver and EAS. Sinks make data easy to query; they don&apos;t replace signatures.
+      </p>
+
+      <h2>gridz.eth and gridz.bio</h2>
+      <ul>
+        <li>
+          <code>kevin.gridz.eth</code> — your on-chain ENS identity. Resolves via the GridzResolver
+          wildcard.
+        </li>
+        <li>
+          <code>kevin.gridz.bio</code> — the same profile as a normal website URL for sharing and
+          discovery.
+        </li>
+      </ul>
+
+      <h2>Draft vs on-chain</h2>
+      <p>
+        <strong>Draft</strong> = signed in your browser, saved locally, not published.{" "}
+        <strong>On-chain</strong> = EAS attestations written to Ethereum; public via gridz.bio and the
+        API. See <a href="/docs/using-gridz">Using gridz.bio</a>.
+      </p>
+
       <h2>No custodied keys</h2>
-      <p>Gridz never holds a private key. Signers wrap an external wallet, passkey, or 1Claw HSM.</p>
+      <p>
+        Gridz (the framework and gridz.bio) never holds your private key. You sign with your wallet,
+        the CLI with your local key, or an agent with 1Claw HSM. The server registrar on gridz.bio
+        only submits <em>its own</em> transactions to link your already-signed attestations on-chain
+        — it cannot impersonate you.
+      </p>
     </>
   );
 }

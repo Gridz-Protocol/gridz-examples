@@ -75,7 +75,10 @@ export function SpritzProfile({ grid, subject }: SpritzProfileProps) {
       <section className="spritz-bento">
         {widgets.length === 0 ? (
           <div className="spritz-bento__empty">
-            <p>No widgets yet — add stats, polls, and links from the profile editor.</p>
+            <p>
+              No widget cards yet. Open <strong>Edit profile</strong> → enable Stats, Poll, or Featured
+              link under Widget cards.
+            </p>
           </div>
         ) : (
           widgets.map((cell) => {

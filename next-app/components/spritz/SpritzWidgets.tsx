@@ -82,6 +82,22 @@ export function SpritzSocial({ cell }: { cell: Cell }) {
   );
 }
 
+export function SpritzLinkCard({ cell }: { cell: Cell }) {
+  const v =
+    typeof cell.value === "object" && cell.value !== null
+      ? (cell.value as { label?: string; url?: string })
+      : { url: asString(cell.value) };
+  const href = v.url?.startsWith("http") ? v.url : `https://${v.url ?? ""}`;
+  const label = v.label ?? "Link";
+  return (
+    <a className="spritz-link-card" href={href} target="_blank" rel="noreferrer noopener">
+      <span className="spritz-link-card__icon">🔗</span>
+      <span className="spritz-link-card__label">{label}</span>
+      <span className="spritz-link-card__url">{v.url ?? href}</span>
+    </a>
+  );
+}
+
 function guessSocialUrl(key: string, handle: string): string {
   if (handle.startsWith("http")) return handle;
   if (key === "com.twitter") return `https://x.com/${handle.replace(/^@/, "")}`;
@@ -217,8 +233,8 @@ export function resolveSpritzWidget(cell: Cell) {
   const wt = cell.widget_type ?? cell.key;
   if (wt === "gridz.stats") return SpritzStats;
   if (wt === "gridz.poll") return SpritzPoll;
-  if (wt === "gridz.social_link" || (cell.key.includes(".") && !cell.key.startsWith("gridz.")))
-    return SpritzSocial;
+  if (wt === "gridz.social_link") return SpritzLinkCard;
+  if (cell.key.includes(".") && !cell.key.startsWith("gridz.")) return SpritzSocial;
   if (wt === "gridz.availability_status") return SpritzAvailability;
   if (wt === "gridz.currently") return SpritzCurrently;
   if (wt === "gridz.countdown") return SpritzCountdown;

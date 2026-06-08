@@ -6,8 +6,11 @@ import { usePathname } from "next/navigation";
 const NAV = [
   { href: "/docs", label: "Introduction" },
   { href: "/docs/claim", label: "Claim your profile" },
-  { href: "/docs/getting-started", label: "Getting started" },
+  { href: "/docs/using-gridz", label: "Using gridz.bio" },
   { href: "/docs/concepts", label: "Concepts" },
+  { href: "/docs/api", label: "API & integrations" },
+  { href: "/docs/toolkit", label: "Toolkit" },
+  { href: "/docs/cli", label: "CLI" },
   { href: "/docs/verification", label: "Verification" },
 ];
 
