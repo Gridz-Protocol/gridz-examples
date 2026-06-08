@@ -26,7 +26,7 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
   const router = useRouter();
   const { address, targetChainId } = useWallet();
   const publishedRef = useRef(false);
-  const [editing, setEditing] = useState(startClaiming);
+  const [editing, setEditing] = useState(startClaiming && !chainGrid);
   const [grid, setGrid] = useState<Grid | null>(chainGrid);
   const [source, setSource] = useState<"chain" | "draft" | "none">(chainGrid ? "chain" : "none");
   const [draftBundle, setDraftBundle] = useState(() => loadDraftBundle(subject));
@@ -80,6 +80,11 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
 
   const demo = isDemoProfile(subject);
   const isOwner = grid ? isProfileOwner(grid, address, targetChainId) : false;
+  const canEdit = !grid || isOwner;
+
+  useEffect(() => {
+    if (grid && !isOwner && editing) setEditing(false);
+  }, [grid, isOwner, editing]);
 
   return (
     <>
@@ -117,12 +122,14 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
             <button type="button" className="site-btn" onClick={() => setVerifyOpen(true)}>
               Query &amp; verify
             </button>
-            <button type="button" className="site-btn site-btn--primary" onClick={() => setEditing((v) => !v)}>
-              {editing ? "Close editor" : grid ? "Edit profile" : "Claim profile"}
-            </button>
+            {canEdit ? (
+              <button type="button" className="site-btn site-btn--primary" onClick={() => setEditing((v) => !v)}>
+                {editing ? "Close editor" : grid ? "Edit profile" : "Claim profile"}
+              </button>
+            ) : null}
           </div>
         </div>
-        {editing ? (
+        {editing && canEdit ? (
           <>
             {source === "none" ? <ClaimSteps ensName={subject} /> : null}
             <ProfileEditor
@@ -148,7 +155,7 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
       ) : null}
 
       {grid ? (
-        <SpritzProfile grid={grid} subject={subject} showOwnerHints={isOwner || editing} />
+        <SpritzProfile grid={grid} subject={subject} showOwnerHints={isOwner} />
       ) : (
         <div className="profile-layout">
           <div className="profile-empty">
