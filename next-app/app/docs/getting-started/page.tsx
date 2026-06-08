@@ -19,7 +19,19 @@ pnpm bootstrap --deploy --ens --vercel --yes`}</code>
 pnpm --filter gridz-next-app... run build
 pnpm test`}</code>
       </pre>
-      <h2>4. Render in React</h2>
+      <h2>4. Profile API</h2>
+      <pre>
+        <code>{`GET /api/profile/kevin.gridz.eth
+
+{
+  "ok": true,
+  "subject": "kevin.gridz.eth",
+  "grid": { "subject", "theme", "cells", ... },
+  "api": { "render": "https://gridz.bio/kevin.gridz.eth" }
+}`}</code>
+      </pre>
+
+      <h2>5. Render in React</h2>
       <pre>
         <code>{`import { Grid } from "@gridz/react";
 import "@gridz/react/styles.css";

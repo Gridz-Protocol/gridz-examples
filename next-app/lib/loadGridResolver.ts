@@ -10,7 +10,31 @@ import type { PublicClient } from "viem";
 import { namehash } from "viem";
 import { DEFAULT_THEME } from "./defaultTheme";
 
-const STANDARD_KEYS = ["alias", "description", "url"] as const;
+const FALLBACK_KEYS = [
+  "alias",
+  "description",
+  "url",
+  "avatar",
+  "header",
+  "timezone",
+  "gridz.message_me",
+  "gridz.stats",
+  "gridz.poll",
+  "gridz.currently",
+  "gridz.availability_status",
+  "gridz.countdown",
+  "gridz.clock",
+  "gridz.social_link",
+  "gridz.guestbook",
+  "gridz.reaction_wall",
+  "gridz.goals_checklist",
+  "gridz.random_fact",
+  "gridz.visitor_counter",
+  "com.twitter",
+  "com.github",
+  "com.discord",
+  "social.bsky",
+] as const;
 
 const RESOLVER_ABI = [
   {
@@ -25,11 +49,26 @@ const RESOLVER_ABI = [
   },
 ] as const;
 
-const POSITIONS: Record<string, { x: number; y: number; w: number; h: number; size: string }> = {
-  alias: { x: 0, y: 0, w: 1, h: 1, size: "1x1" },
-  description: { x: 1, y: 0, w: 2, h: 1, size: "2x1" },
-  url: { x: 0, y: 1, w: 1, h: 1, size: "1x1" },
-};
+const ZERO_UID = `0x${"0".repeat(64)}` as Hex;
+
+function defaultPosition(i: number) {
+  const x = i % 3;
+  const y = Math.floor(i / 3);
+  return { x, y, w: 1, h: 1, size: "1x1" as const };
+}
+
+async function readKeys(client: PublicClient, subject: string): Promise<string[]> {
+  const manifest = await client.getEnsText({ name: subject, key: "gridz.keys" });
+  if (manifest) {
+    try {
+      const keys = JSON.parse(manifest) as string[];
+      if (Array.isArray(keys) && keys.length) return keys;
+    } catch {
+      /* ignore */
+    }
+  }
+  return [...FALLBACK_KEYS];
+}
 
 export async function loadGridFromResolver(
   client: PublicClient,
@@ -37,41 +76,51 @@ export async function loadGridFromResolver(
   resolverAddress: Hex,
 ): Promise<Grid | null> {
   const node = namehash(subject);
+  const keys = await readKeys(client, subject);
   const cells: Cell[] = [];
 
-  for (const key of STANDARD_KEYS) {
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i]!;
     const value = await client.getEnsText({ name: subject, key });
     if (!value) continue;
 
-    const uid = (await client.readContract({
-      address: resolverAddress,
-      abi: RESOLVER_ABI,
-      functionName: "cellAttestation",
-      args: [node, key],
-    })) as Hex;
+    let uid: Hex = ZERO_UID;
+    try {
+      uid = (await client.readContract({
+        address: resolverAddress,
+        abi: RESOLVER_ABI,
+        functionName: "cellAttestation",
+        args: [node, key],
+      })) as Hex;
+    } catch {
+      /* optional */
+    }
 
-    const pos = POSITIONS[key];
+    const pos = defaultPosition(i);
+    const widget_type = key.startsWith("gridz.") ? key : undefined;
     cells.push({
       id: key,
       key,
-      value,
+      value: tryParseJson(value),
+      ...(widget_type ? { widget_type } : {}),
       position: { x: pos.x, y: pos.y, w: pos.w, h: pos.h },
       size: pos.size,
-      is_visible: true,
+      is_visible: !key.startsWith("gridz.att["),
       attestation: {
-        format: uid === `0x${"0".repeat(64)}` ? "eip712-raw" : "eas-onchain",
+        format: uid === ZERO_UID ? "eip712-raw" : "eas-onchain",
         uid,
-        uri: uid === `0x${"0".repeat(64)}` ? `ens://${subject}/${key}` : `eas://${uid}`,
+        uri: uid === ZERO_UID ? `ens://${subject}/${key}` : `eas://${uid}`,
         attester: subject,
         iat: new Date().toISOString(),
-        value_hash: `0x${"0".repeat(64)}` as Hex,
+        value_hash: ZERO_UID,
       },
     });
   }
 
   if (cells.length === 0) return null;
 
-  const alias = (cells.find((c) => c.key === "alias")?.value as string | undefined) ?? subject.split(".")[0];
+  const alias =
+    (cells.find((c) => c.key === "alias")?.value as string | undefined) ?? subject.split(".")[0];
   const gridSubject: Subject = {
     type: "human",
     did: `did:ens:${subject}`,
@@ -88,11 +137,20 @@ export async function loadGridFromResolver(
     cells,
     root_attestation: {
       format: "eip712-raw",
-      uid: `0x${"0".repeat(64)}`,
+      uid: ZERO_UID,
       uri: `ens://${subject}`,
       attester: subject,
       iat: new Date().toISOString(),
-      value_hash: `0x${"0".repeat(64)}` as Hex,
+      value_hash: ZERO_UID,
     },
   };
+}
+
+function tryParseJson(value: string): unknown {
+  if (!value.startsWith("{") && !value.startsWith("[")) return value;
+  try {
+    return JSON.parse(value) as unknown;
+  } catch {
+    return value;
+  }
 }
