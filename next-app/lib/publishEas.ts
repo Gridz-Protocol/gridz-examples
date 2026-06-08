@@ -1,4 +1,5 @@
 import { decodeBundle, type Cell, type Grid, type Hex } from "@gridz/core";
+import { countCellsToPublish } from "./incrementalProfileGrid";
 import { getUIDsFromAttestReceipt } from "@ethereum-attestation-service/eas-sdk";
 import type { PublicClient, WalletClient } from "viem";
 import {
@@ -57,6 +58,14 @@ const RESOLVER_ABI = [
   },
 ] as const;
 
+
+function shouldPublishCell(cell: Cell, chainBaseline: Grid | null | undefined): boolean {
+  if (!chainBaseline) return true;
+  const onChain = chainBaseline.cells.find((c) => c.key === cell.key);
+  if (!onChain?.attestation?.value_hash || !cell.attestation?.value_hash) return true;
+  return onChain.attestation.value_hash !== cell.attestation.value_hash;
+}
+
 function displayValue(cell: Cell): string {
   if (typeof cell.value === "string") return cell.value;
   return JSON.stringify(cell.value);
@@ -104,8 +113,9 @@ export async function publishGridViaEas(
     resolverAddress: Hex;
     publicClient: PublicClient;
     walletClient: WalletClient;
+    chainBaseline?: Grid | null;
   },
-): Promise<{ txCount: number; uids: Hex[] }> {
+): Promise<{ txCount: number; uids: Hex[]; publishedCellCount: number; skippedCellCount: number }> {
   const { easAddress, cellSchema, resolverAddress, publicClient, walletClient } = opts;
   const account = walletClient.account;
   if (!account) throw new Error("Registrar wallet account required");
@@ -117,11 +127,19 @@ export async function publishGridViaEas(
 
   // Publish sequentially — parallel txs from one registrar wallet cause nonce collisions
   // and partial publishes (e.g. alias saved but url missing).
-  const ordered = [...grid.cells].sort((a, b) => {
-    if (a.key === "gridz.keys") return 1;
-    if (b.key === "gridz.keys") return -1;
-    return 0;
-  });
+  const chainBaseline = opts.chainBaseline;
+  const ordered = [...grid.cells]
+    .filter((cell) => shouldPublishCell(cell, chainBaseline))
+    .sort((a, b) => {
+      if (a.key === "gridz.keys") return 1;
+      if (b.key === "gridz.keys") return -1;
+      return 0;
+    });
+
+  const skippedCellCount = grid.cells.length - ordered.length;
+  if (ordered.length === 0) {
+    return { txCount: 0, uids: [], publishedCellCount: 0, skippedCellCount };
+  }
 
   const uids: Hex[] = [];
   for (let i = 0; i < ordered.length; i++) {
@@ -172,5 +190,5 @@ export async function publishGridViaEas(
     uids.push(uid);
   }
 
-  return { txCount: grid.cells.length * 2, uids };
+  return { txCount: ordered.length * 2, uids, publishedCellCount: ordered.length, skippedCellCount };
 }

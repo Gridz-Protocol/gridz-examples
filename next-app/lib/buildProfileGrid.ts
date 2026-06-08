@@ -1,28 +1,8 @@
-import { buildGrid, type CellDraft, type Grid, type Hex, type Signer } from "@gridz/core";
+import { type CellDraft, type Grid, type Hex } from "@gridz/core";
+import { buildProfileGridIncremental } from "./incrementalProfileGrid";
 import type { WalletClient } from "viem";
-import { DEFAULT_THEME } from "./defaultTheme";
 import type { ProfileEditorState } from "./profileFields";
 import { normalizeUrl } from "./normalizeUrl";
-
-function walletSigner(walletClient: WalletClient, chainId: number, address: Hex): Signer {
-  return {
-    async did() {
-      return `did:pkh:eip155:${chainId}:${address.toLowerCase()}`;
-    },
-    format: () => "eip712-raw" as const,
-    async signTypedData(params) {
-      const signature = await walletClient.signTypedData({
-        account: address,
-        ...params,
-        primaryType: params.primaryType,
-      } as never);
-      return { signature, signerAddress: address };
-    },
-    async signMessage(message) {
-      return walletClient.signMessage({ account: address, message: message as never });
-    },
-  };
-}
 
 function pushSocial(cells: CellDraft[], y: number, id: string, key: string, value: string) {
   if (!value) return y;
@@ -250,22 +230,18 @@ export async function buildProfileGrid(
   chainId: number,
   resolver: Hex,
   signerAddress: Hex,
+  baseline?: Grid | null,
 ): Promise<Grid> {
-  const signer = walletSigner(walletClient, chainId, signerAddress);
-  const did = await signer.did();
-  const cells = profileCellsFromFields(fields);
-
-  if (cells.length === 0) {
-    throw new Error("Add at least a display name before signing.");
-  }
-
-  return buildGrid(signer, {
-    subject: { type: "human", did, ens: ensName, display_name: fields.alias.trim() || ensName.split(".")[0] },
-    theme: DEFAULT_THEME,
+  const { grid } = await buildProfileGridIncremental(
+    fields,
+    ensName,
+    walletClient,
     chainId,
-    verifyingContract: resolver,
-    cells,
-  });
+    resolver,
+    signerAddress,
+    baseline,
+  );
+  return grid;
 }
 
 export type ProfileFields = ProfileEditorState;

@@ -10,6 +10,7 @@ export interface PublishProgressProps {
   phase: PublishUiPhase;
   ensName: string;
   cellCount?: number;
+  signCount?: number;
   txCount?: number;
   errorMessage?: string;
   draftSaved?: boolean;
@@ -20,6 +21,7 @@ export function PublishProgress({
   phase,
   ensName,
   cellCount = 1,
+  signCount,
   txCount,
   errorMessage,
   draftSaved,
@@ -75,8 +77,18 @@ export function PublishProgress({
         <div className="publish-progress__head">
           <span className="publish-progress__spinner" aria-hidden />
           <div>
-            <p className="publish-progress__title">Signing your profile</p>
-            <p className="publish-progress__sub">Confirm each prompt in your wallet…</p>
+            <p className="publish-progress__title">
+              {signCount && signCount > 1
+                ? `Signing ${signCount} update${signCount === 1 ? "" : "s"}`
+                : "Signing your profile"}
+            </p>
+            <p className="publish-progress__sub">
+              {signCount
+                ? signCount === 1
+                  ? "Confirm the root signature in your wallet…"
+                  : `Confirm ${signCount} wallet prompt${signCount === 1 ? "" : "s"} — only changed fields plus the profile root.`
+                : "Confirm each prompt in your wallet…"}
+            </p>
           </div>
         </div>
       ) : null}
@@ -88,8 +100,8 @@ export function PublishProgress({
             <div>
               <p className="publish-progress__title">Publishing to Ethereum</p>
               <p className="publish-progress__sub">
-                Writing {cellCount} attestation{cellCount === 1 ? "" : "s"} on-chain. Keep this tab
-                open.
+                Writing {cellCount} changed attestation{cellCount === 1 ? "" : "s"} on-chain. Unchanged
+                fields are skipped. Keep this tab open.
               </p>
             </div>
           </div>

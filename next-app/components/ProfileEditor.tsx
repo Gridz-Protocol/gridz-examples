@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import type { Grid } from "@gridz/core";
 import { useWallet, walletChainLabel } from "../lib/wallet";
 import { buildProfileGrid } from "../lib/buildProfileGrid";
+import { profileCellsFromFields } from "../lib/buildProfileGrid";
+import { countCellsToSign } from "../lib/incrementalProfileGrid";
 import { saveDraft } from "../lib/drafts";
 import { fieldsFromGrid, type ProfileEditorState } from "../lib/profileFields";
 import { AvatarField } from "./AvatarField";
@@ -41,6 +43,7 @@ export function ProfileEditor({ ensName, initial, onSaved, isClaim = false }: Pr
   const [publishUi, setPublishUi] = useState<{
     phase: PublishUiPhase;
     cellCount?: number;
+    signCount?: number;
     txCount?: number;
     errorMessage?: string;
     draftSaved?: boolean;
@@ -62,14 +65,20 @@ export function ProfileEditor({ ensName, initial, onSaved, isClaim = false }: Pr
 
       setBusy(action);
       setSaveMessage(null);
-      if (action === "publish") {
-        setPublishUi({ phase: "signing" });
-      } else {
+      if (action !== "publish") {
         setPublishUi(null);
       }
 
       try {
         const wallet = await prepareWallet();
+        const attesterDid = `did:pkh:eip155:${GRIDZ_CHAIN_ID}:${wallet.address.toLowerCase()}`;
+        const drafts = profileCellsFromFields(fields);
+        const signCount = countCellsToSign(drafts, initial ?? null, attesterDid);
+
+        if (action === "publish") {
+          setPublishUi({ phase: "signing", signCount, cellCount: drafts.length });
+        }
+
         const grid = await buildProfileGrid(
           fields,
           ensName,
@@ -77,24 +86,34 @@ export function ProfileEditor({ ensName, initial, onSaved, isClaim = false }: Pr
           GRIDZ_CHAIN_ID,
           resolver,
           wallet.address,
+          initial ?? null,
         );
 
         if (action === "save") {
           saveDraft(ensName, grid);
           onSaved(grid, "draft");
-          setSaveMessage("Signed profile saved as a local draft. Publish to ENS when ready.");
+          const reused = drafts.length + 1 - signCount;
+          setSaveMessage(
+            signCount <= 1
+              ? "Signed profile saved as a local draft. Publish to ENS when ready."
+              : `Signed ${signCount} update${signCount === 1 ? "" : "s"} (${reused} unchanged). Draft saved — publish when ready.`,
+          );
           return;
         }
 
-        const cellCount = grid.cells.length;
-        setPublishUi({ phase: "publishing", cellCount });
+        setPublishUi({ phase: "publishing", cellCount: grid.cells.length, signCount });
 
         const res = await fetch("/api/publish", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ensName, grid }),
         });
-        const result = (await res.json()) as { ok: boolean; error?: string; txCount?: number };
+        const result = (await res.json()) as {
+          ok: boolean;
+          error?: string;
+          txCount?: number;
+          publishedCellCount?: number;
+        };
         if (!result.ok) {
           saveDraft(ensName, grid);
           onSaved(grid, "draft");
@@ -109,7 +128,11 @@ export function ProfileEditor({ ensName, initial, onSaved, isClaim = false }: Pr
         }
         saveDraft(ensName, grid);
         onSaved(grid, "chain");
-        setPublishUi({ phase: "success", cellCount, txCount: result.txCount });
+        setPublishUi({
+          phase: "success",
+          cellCount: result.publishedCellCount ?? grid.cells.length,
+          txCount: result.txCount,
+        });
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
         if (action === "publish") {
@@ -121,7 +144,7 @@ export function ProfileEditor({ ensName, initial, onSaved, isClaim = false }: Pr
         setBusy(null);
       }
     },
-    [ensName, fields, onSaved, prepareWallet, resolver],
+    [ensName, fields, initial, onSaved, prepareWallet, resolver],
   );
 
   const walletReady = Boolean(isConnected && address && isCorrectChain);
@@ -144,8 +167,8 @@ export function ProfileEditor({ ensName, initial, onSaved, isClaim = false }: Pr
               </span>
             </div>
             <p className="wallet-banner__sub">
-              Your wallet signs each field you add (name, avatar, widgets, etc.). More fields = more
-              signature prompts.
+              You only sign fields you changed — unchanged cells reuse your prior attestations. One
+              extra signature updates the profile root when anything changes.
             </p>
           </>
         ) : (
@@ -253,6 +276,7 @@ export function ProfileEditor({ ensName, initial, onSaved, isClaim = false }: Pr
           phase={publishUi.phase}
           ensName={ensName}
           cellCount={publishUi.cellCount}
+          signCount={publishUi.signCount}
           txCount={publishUi.txCount}
           errorMessage={publishUi.errorMessage}
           draftSaved={publishUi.draftSaved}

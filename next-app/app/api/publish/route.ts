@@ -7,6 +7,7 @@ import { createPublicClient, createWalletClient, getAddress, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { mainnet, sepolia } from "viem/chains";
 import { publishGridViaEas } from "../../../lib/publishEas";
+import { loadGrid } from "../../../lib/loadGrid";
 
 function chainForId(chainId: number) {
   return chainId === 11155111 ? sepolia : mainnet;
@@ -60,15 +61,17 @@ export async function POST(request: Request) {
     const publicClient = createPublicClient({ chain, transport: http(rpc) });
     const walletClient = createWalletClient({ account, chain, transport: http(rpc) });
 
-    const { txCount } = await publishGridViaEas(grid, ensName, {
+    const chainBaseline = await loadGrid(ensName);
+    const { txCount, publishedCellCount, skippedCellCount } = await publishGridViaEas(grid, ensName, {
       easAddress,
       cellSchema,
       resolverAddress: resolver,
       publicClient,
       walletClient,
+      chainBaseline,
     });
 
-    return NextResponse.json({ ok: true, txCount });
+    return NextResponse.json({ ok: true, txCount, publishedCellCount, skippedCellCount });
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     return NextResponse.json({ ok: false, error: msg }, { status: 500 });
