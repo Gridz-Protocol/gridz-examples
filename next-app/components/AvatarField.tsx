@@ -41,7 +41,7 @@ export function AvatarField({ ensName, value, onChange, disabled }: AvatarFieldP
   return (
     <div className="site-field">
       <label className="site-label" htmlFor="avatar-url">
-        Avatar <span className="site-label__hint">1:1 · stored as a signed URL on your profile</span>
+        Avatar <span className="site-label__hint">1:1 · pinned to IPFS via Pinata</span>
       </label>
       <div className="avatar-field">
         <div className="avatar-field__preview" aria-hidden>
@@ -87,8 +87,8 @@ export function AvatarField({ ensName, value, onChange, disabled }: AvatarFieldP
             ) : null}
           </div>
           <p className="avatar-field__note">
-            Images are hosted on Gridz storage (Vercel Blob). Your profile stores the URL in the signed{" "}
-            <code>avatar</code> cell — not the file itself.
+            Uploads are pinned to public IPFS via Pinata. Your profile stores the gateway URL in the signed{" "}
+            <code>avatar</code> cell — the image file lives on IPFS, not on-chain.
           </p>
           {error ? <p className="avatar-field__error">{error}</p> : null}
         </div>

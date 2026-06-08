@@ -1,17 +1,16 @@
 import { NextResponse } from "next/server";
-import { put } from "@vercel/blob";
+import { pinataConfigured, uploadToPinata } from "../../../../lib/pinataUpload";
 
 const MAX_BYTES = 1_500_000;
 const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 export async function POST(request: Request) {
-  const token = process.env.BLOB_READ_WRITE_TOKEN;
-  if (!token) {
+  if (!pinataConfigured()) {
     return NextResponse.json(
       {
         ok: false,
         error:
-          "Image upload is not configured. Paste an image URL instead, or set BLOB_READ_WRITE_TOKEN on Vercel.",
+          "Image upload is not configured. Set PINATA_JWT or PINATA_API_KEY + PINATA_API_SECRET on the server, or paste an image URL.",
       },
       { status: 503 },
     );
@@ -38,17 +37,13 @@ export async function POST(request: Request) {
   }
 
   const safe = ensName.toLowerCase().replace(/[^a-z0-9.-]/g, "");
-  const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
-  const pathname = `avatars/${safe}/avatar.${ext}`;
 
   try {
-    const blob = await put(pathname, file, {
-      access: "public",
-      token,
-      addRandomSuffix: true,
-      contentType: file.type,
+    const { cid, url } = await uploadToPinata(file, {
+      name: `gridz-avatar-${safe}`,
+      ensName,
     });
-    return NextResponse.json({ ok: true, url: blob.url });
+    return NextResponse.json({ ok: true, url, cid });
   } catch (e) {
     return NextResponse.json(
       { ok: false, error: e instanceof Error ? e.message : "Upload failed." },
