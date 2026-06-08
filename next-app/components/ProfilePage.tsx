@@ -9,7 +9,7 @@ import { ProfileVerifyModal } from "./ProfileVerifyModal";
 import { SpritzProfile } from "./SpritzProfile";
 import { profileApiUrl } from "../lib/profileVerifyGuide";
 import { loadDraftBundle } from "../lib/drafts";
-import { mergeFieldPreview } from "../lib/previewGrid";
+import { resolveProfileSource } from "../lib/profileSource";
 import { rememberProfile } from "../lib/recentProfiles";
 import { bioUrlForEns } from "../lib/subjectFromHost";
 import { isDemoProfile } from "../lib/demoProfile";
@@ -27,9 +27,10 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
   const { address, targetChainId } = useWallet();
   const publishedRef = useRef(false);
   const [editing, setEditing] = useState(startClaiming && !chainGrid);
-  const [grid, setGrid] = useState<Grid | null>(chainGrid);
-  const [source, setSource] = useState<"chain" | "draft" | "none">(chainGrid ? "chain" : "none");
   const [draftBundle, setDraftBundle] = useState(() => loadDraftBundle(subject));
+  const initialView = resolveProfileSource(chainGrid, draftBundle, subject);
+  const [grid, setGrid] = useState<Grid | null>(initialView.grid);
+  const [source, setSource] = useState<"chain" | "draft" | "none">(initialView.source);
   const [verifyOpen, setVerifyOpen] = useState(false);
 
   const bioUrl = useMemo(() => bioUrlForEns(subject), [subject]);
@@ -46,17 +47,9 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
     }
     const bundle = loadDraftBundle(subject);
     setDraftBundle(bundle);
-    if (bundle) {
-      const merged = mergeFieldPreview(chainGrid, bundle.fields, subject);
-      setGrid(merged);
-      setSource(chainGrid ? "draft" : "draft");
-    } else if (chainGrid) {
-      setGrid(chainGrid);
-      setSource("chain");
-    } else {
-      setGrid(null);
-      setSource("none");
-    }
+    const view = resolveProfileSource(chainGrid, bundle, subject);
+    setGrid(view.grid);
+    setSource(view.source);
   }, [chainGrid, subject]);
 
   const onPreview = useCallback((g: Grid) => {

@@ -965,6 +965,56 @@ a:hover {
 }
 
 /* Find page */
+.faq-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+}
+
+.faq-hero h1 {
+  margin: 0 0 8px;
+  font-size: 32px;
+}
+
+.faq-hero__lead {
+  color: var(--site-muted);
+  line-height: 1.6;
+  margin: 0 0 32px;
+}
+
+.faq-section {
+  margin-bottom: 28px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--site-border);
+}
+
+.faq-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.faq-section h2 {
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+
+.faq-section p,
+.faq-section li {
+  margin: 0;
+  color: #d4d4d8;
+  line-height: 1.65;
+}
+
+.faq-section ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.faq-section li + li {
+  margin-top: 6px;
+}
+
 .find-page {
   max-width: 640px;
   margin: 0 auto;

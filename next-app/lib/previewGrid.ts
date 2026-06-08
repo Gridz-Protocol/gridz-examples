@@ -60,25 +60,60 @@ export function previewGridFromFields(
   };
 }
 
-/** Draft preview: fields drive the cell set; reuse on-chain attestations where keys match. */
+/**
+ * Draft preview: fields drive the publishable cell set (no placeholder-only cells);
+ * reuse on-chain attestations where keys match.
+ */
 export function mergeFieldPreview(
   chain: Grid | null,
   fields: ProfileEditorState,
   ensName: string,
 ): Grid | null {
-  const preview = previewGridFromFields(fields, ensName, chain);
-  if (!preview) return null;
-  if (!chain) return preview;
+  const drafts = profileCellsFromFields(fields);
+  if (drafts.length === 0) return chain;
 
-  const chainByKey = new Map(chain.cells.map((c) => [c.key, c]));
-  const cells = preview.cells.map((cell) => ({
-    ...cell,
-    attestation: chainByKey.get(cell.key)?.attestation ?? cell.attestation,
+  const now = new Date().toISOString();
+  const chainByKey = chain ? new Map(chain.cells.map((c) => [c.key, c])) : null;
+
+  const cells: Cell[] = drafts.map((d) => ({
+    id: d.id,
+    key: d.key,
+    value: d.value,
+    ...(d.widget_type ? { widget_type: d.widget_type } : {}),
+    position: d.position,
+    size: d.size,
+    is_visible: d.is_visible ?? true,
+    attestation:
+      chainByKey?.get(d.key)?.attestation ?? placeholderAttestation(ensName, d.key, now),
   }));
+
+  const subject = {
+    type: (fields.tokensEnabled ? "organization" : "human") as Grid["subject"]["type"],
+    did: chain?.subject.did ?? `did:ens:${ensName}`,
+    ens: ensName,
+    display_name: fields.alias.trim() || ensName.split(".")[0],
+  };
+
+  if (!chain) {
+    return {
+      schema_version: SCHEMA_VERSION,
+      subject,
+      theme: DEFAULT_THEME,
+      cells,
+      root_attestation: {
+        format: "eip712-raw",
+        uid: ZERO,
+        uri: `draft://${ensName}`,
+        attester: ensName,
+        iat: now,
+        value_hash: ZERO,
+      } as Grid["root_attestation"],
+    };
+  }
 
   return {
     ...chain,
-    subject: preview.subject,
+    subject,
     cells,
     root_attestation: chain.root_attestation,
   };

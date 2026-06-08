@@ -44,6 +44,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <Link href="/docs" className={`site-nav__link${isDocs ? " site-nav__link--active" : ""}`}>
             Docs
           </Link>
+          <Link href="/faq" className={`site-nav__link${pathname === "/faq" ? " site-nav__link--active" : ""}`}>
+            FAQ
+          </Link>
           <Link href="/for-ai" className={`site-nav__link${isForAi ? " site-nav__link--active" : ""}`}>
             For AI
           </Link>
