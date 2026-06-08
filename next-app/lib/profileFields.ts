@@ -5,6 +5,11 @@ export interface StatRow {
   value: string;
 }
 
+export interface GuestbookEntry {
+  text: string;
+  author: string;
+}
+
 export interface ProfileEditorState {
   alias: string;
   description: string;
@@ -13,6 +18,8 @@ export interface ProfileEditorState {
   twitter: string;
   github: string;
   bsky: string;
+  discord: string;
+  telegram: string;
   statsEnabled: boolean;
   stats: StatRow[];
   pollEnabled: boolean;
@@ -21,6 +28,24 @@ export interface ProfileEditorState {
   linkEnabled: boolean;
   linkLabel: string;
   linkUrl: string;
+  messageMeEnabled: boolean;
+  messageMeUrl: string;
+  availabilityEnabled: boolean;
+  availabilityStatus: "available" | "busy";
+  availabilityMessage: string;
+  currentlyEnabled: boolean;
+  currentlyTitle: string;
+  currentlySubtitle: string;
+  currentlyEmoji: string;
+  countdownEnabled: boolean;
+  countdownLabel: string;
+  countdownTarget: string;
+  clockEnabled: boolean;
+  clockTimezone: string;
+  textEnabled: boolean;
+  textContent: string;
+  guestbookEnabled: boolean;
+  guestbookEntries: GuestbookEntry[];
 }
 
 export const DEFAULT_PROFILE_FIELDS: ProfileEditorState = {
@@ -31,6 +56,8 @@ export const DEFAULT_PROFILE_FIELDS: ProfileEditorState = {
   twitter: "",
   github: "",
   bsky: "",
+  discord: "",
+  telegram: "",
   statsEnabled: false,
   stats: [
     { label: "Followers", value: "" },
@@ -42,6 +69,24 @@ export const DEFAULT_PROFILE_FIELDS: ProfileEditorState = {
   linkEnabled: false,
   linkLabel: "",
   linkUrl: "",
+  messageMeEnabled: false,
+  messageMeUrl: "",
+  availabilityEnabled: false,
+  availabilityStatus: "available",
+  availabilityMessage: "",
+  currentlyEnabled: false,
+  currentlyTitle: "",
+  currentlySubtitle: "",
+  currentlyEmoji: "🚀",
+  countdownEnabled: false,
+  countdownLabel: "",
+  countdownTarget: "",
+  clockEnabled: false,
+  clockTimezone: "America/New_York",
+  textEnabled: false,
+  textContent: "",
+  guestbookEnabled: false,
+  guestbookEntries: [{ text: "", author: "" }],
 };
 
 function cellString(grid: Grid | null | undefined, key: string): string {
@@ -54,11 +99,20 @@ function cellObject(grid: Grid | null | undefined, key: string): Record<string, 
   return v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : null;
 }
 
+function parseGuestbook(grid: Grid): GuestbookEntry[] {
+  const cell = grid.cells.find((c) => c.key === "gridz.guestbook");
+  if (!cell || !Array.isArray(cell.value)) return [{ text: "", author: "" }];
+  return (cell.value as GuestbookEntry[]).map((e) => ({
+    text: e.text ?? "",
+    author: e.author ?? "",
+  }));
+}
+
 export function fieldsFromGrid(grid: Grid | null | undefined): ProfileEditorState {
   if (!grid) return { ...DEFAULT_PROFILE_FIELDS };
 
   const statsCell = grid.cells.find((c) => c.key === "gridz.stats");
-  let stats: StatRow[] = DEFAULT_PROFILE_FIELDS.stats;
+  let stats = DEFAULT_PROFILE_FIELDS.stats;
   let statsEnabled = false;
   if (statsCell) {
     statsEnabled = true;
@@ -77,34 +131,14 @@ export function fieldsFromGrid(grid: Grid | null | undefined): ProfileEditorStat
     if (stats.length === 0) stats = [{ label: "", value: "" }];
   }
 
-  const pollCell = grid.cells.find((c) => c.key === "gridz.poll");
-  let pollEnabled = false;
-  let pollQuestion = "";
-  let pollOptions = ["", ""];
-  if (pollCell) {
-    pollEnabled = true;
-    const poll = cellObject(grid, "gridz.poll");
-    pollQuestion = typeof poll?.q === "string" ? poll.q : "";
-    pollOptions = Array.isArray(poll?.options)
-      ? (poll.options as string[]).map(String)
-      : ["", ""];
-    while (pollOptions.length < 2) pollOptions.push("");
-  }
-
+  const poll = cellObject(grid, "gridz.poll");
+  const pollEnabled = Boolean(grid.cells.find((c) => c.key === "gridz.poll"));
+  const link = cellObject(grid, "gridz.social_link");
   const linkCell = grid.cells.find((c) => c.key === "gridz.social_link");
-  let linkEnabled = false;
-  let linkLabel = "";
-  let linkUrl = "";
-  if (linkCell) {
-    linkEnabled = true;
-    const link = cellObject(grid, "gridz.social_link");
-    if (link) {
-      linkLabel = typeof link.label === "string" ? link.label : "";
-      linkUrl = typeof link.url === "string" ? link.url : "";
-    } else if (typeof linkCell.value === "string") {
-      linkUrl = linkCell.value;
-    }
-  }
+  const avail = cellObject(grid, "gridz.availability_status");
+  const cur = cellObject(grid, "gridz.currently");
+  const count = cellObject(grid, "gridz.countdown");
+  const msg = grid.cells.find((c) => c.key === "gridz.message_me");
 
   return {
     alias: cellString(grid, "alias"),
@@ -114,13 +148,69 @@ export function fieldsFromGrid(grid: Grid | null | undefined): ProfileEditorStat
     twitter: cellString(grid, "com.twitter"),
     github: cellString(grid, "com.github"),
     bsky: cellString(grid, "social.bsky"),
+    discord: cellString(grid, "com.discord"),
+    telegram: cellString(grid, "org.telegram"),
     statsEnabled,
     stats,
     pollEnabled,
-    pollQuestion,
-    pollOptions,
-    linkEnabled,
-    linkLabel,
-    linkUrl,
+    pollQuestion: typeof poll?.q === "string" ? poll.q : "",
+    pollOptions: Array.isArray(poll?.options) ? (poll.options as string[]).map(String) : ["", ""],
+    linkEnabled: Boolean(linkCell),
+    linkLabel: typeof link?.label === "string" ? link.label : "",
+    linkUrl: typeof link?.url === "string" ? link.url : typeof linkCell?.value === "string" ? linkCell.value : "",
+    messageMeEnabled: Boolean(msg),
+    messageMeUrl: msg ? (typeof msg.value === "string" ? msg.value : "") : "",
+    availabilityEnabled: Boolean(grid.cells.find((c) => c.key === "gridz.availability_status")),
+    availabilityStatus:
+      typeof avail?.status === "string" && avail.status.toLowerCase().includes("busy") ? "busy" : "available",
+    availabilityMessage: typeof avail?.message === "string" ? avail.message : "",
+    currentlyEnabled: Boolean(grid.cells.find((c) => c.key === "gridz.currently")),
+    currentlyTitle: typeof cur?.title === "string" ? cur.title : "",
+    currentlySubtitle: typeof cur?.subtitle === "string" ? cur.subtitle : "",
+    currentlyEmoji: typeof cur?.emoji === "string" ? cur.emoji : "🚀",
+    countdownEnabled: Boolean(grid.cells.find((c) => c.key === "gridz.countdown")),
+    countdownLabel: typeof count?.label === "string" ? count.label : "",
+    countdownTarget: typeof count?.target === "string" ? count.target.slice(0, 16) : "",
+    clockEnabled: Boolean(grid.cells.find((c) => c.key === "gridz.clock" || c.key === "timezone")),
+    clockTimezone: cellString(grid, "gridz.clock") || cellString(grid, "timezone") || "America/New_York",
+    textEnabled: Boolean(grid.cells.find((c) => c.key === "gridz.text")),
+    textContent: cellString(grid, "gridz.text"),
+    guestbookEnabled: Boolean(grid.cells.find((c) => c.key === "gridz.guestbook")),
+    guestbookEntries: parseGuestbook(grid),
   };
+}
+
+export function isWidgetEnabled(fields: ProfileEditorState, id: string): boolean {
+  const map: Record<string, boolean> = {
+    stats: fields.statsEnabled,
+    poll: fields.pollEnabled,
+    link: fields.linkEnabled,
+    message_me: fields.messageMeEnabled,
+    availability: fields.availabilityEnabled,
+    currently: fields.currentlyEnabled,
+    countdown: fields.countdownEnabled,
+    clock: fields.clockEnabled,
+    text: fields.textEnabled,
+    guestbook: fields.guestbookEnabled,
+  };
+  return map[id] ?? false;
+}
+
+export function setWidgetEnabled(
+  fields: ProfileEditorState,
+  id: string,
+  enabled: boolean,
+): ProfileEditorState {
+  const patch: Partial<ProfileEditorState> = {};
+  if (id === "stats") patch.statsEnabled = enabled;
+  if (id === "poll") patch.pollEnabled = enabled;
+  if (id === "link") patch.linkEnabled = enabled;
+  if (id === "message_me") patch.messageMeEnabled = enabled;
+  if (id === "availability") patch.availabilityEnabled = enabled;
+  if (id === "currently") patch.currentlyEnabled = enabled;
+  if (id === "countdown") patch.countdownEnabled = enabled;
+  if (id === "clock") patch.clockEnabled = enabled;
+  if (id === "text") patch.textEnabled = enabled;
+  if (id === "guestbook") patch.guestbookEnabled = enabled;
+  return { ...fields, ...patch };
 }

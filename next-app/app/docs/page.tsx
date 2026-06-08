@@ -9,6 +9,12 @@ export default function DocsHome() {
         prove it came from you.
       </p>
 
+      <h2>For AI &amp; agents</h2>
+      <p>
+        Machine-readable index: <a href="/llms.txt">llms.txt</a>, <a href="/skill.md">skill.md</a>,{" "}
+        and the <a href="/for-ai">For AI hub</a> — APIs, MCP, CLI, verification, and guardrails.
+      </p>
+
       <h2>Start here</h2>
       <ul>
         <li>

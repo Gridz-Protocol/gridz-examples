@@ -444,3 +444,9 @@
   color: var(--spritz-muted);
   word-break: break-all;
 }
+
+.spritz-cta--secondary {
+  background: transparent;
+  border: 1px solid var(--spritz-accent, #7c5cff);
+  color: var(--spritz-text, #f4f4f5);
+}

@@ -1,0 +1,44 @@
+import { describe, expect, it } from "vitest";
+import { profileCellsFromFields } from "./buildProfileGrid";
+import { DEFAULT_PROFILE_FIELDS } from "./profileFields";
+
+describe("profileCellsFromFields", () => {
+  it("includes url when website is set", () => {
+    const cells = profileCellsFromFields({
+      ...DEFAULT_PROFILE_FIELDS,
+      alias: "Kevin",
+      url: "example.com",
+    });
+    const url = cells.find((c) => c.key === "url");
+    expect(url?.value).toBe("https://example.com");
+  });
+
+  it("includes all core profile fields", () => {
+    const cells = profileCellsFromFields({
+      ...DEFAULT_PROFILE_FIELDS,
+      alias: "Kevin",
+      description: "Builder",
+      url: "https://gridz.bio",
+      avatar: "https://gateway.pinata.cloud/ipfs/QmTest",
+      twitter: "@kevin",
+      github: "kevin",
+      statsEnabled: true,
+      stats: [{ label: "Posts", value: "42" }],
+      linkEnabled: true,
+      linkLabel: "Blog",
+      linkUrl: "blog.example.com",
+    });
+    const keys = cells.map((c) => c.key);
+    expect(keys).toContain("alias");
+    expect(keys).toContain("description");
+    expect(keys).toContain("url");
+    expect(keys).toContain("avatar");
+    expect(keys).toContain("com.twitter");
+    expect(keys).toContain("com.github");
+    expect(keys).toContain("gridz.stats");
+    expect(keys).toContain("gridz.social_link");
+    expect(keys).toContain("gridz.keys");
+    const manifest = cells.find((c) => c.key === "gridz.keys");
+    expect(JSON.parse(String(manifest?.value))).toContain("url");
+  });
+});

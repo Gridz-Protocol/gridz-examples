@@ -115,53 +115,60 @@ export async function publishGridViaEas(
   const node = namehash(ensName);
   const zero = getAddress("0x0000000000000000000000000000000000000000");
 
-  const uids = await Promise.all(
-    grid.cells.map(async (cell) => {
-      const fields = easFieldsFromCell(cell);
-      const encoded = encodeCellAttestationData(fields);
-      const request = {
-        schema: cellSchema,
-        data: {
-          recipient: zero,
-          expirationTime: 0n,
-          revocable: true,
-          refUID: "0x0000000000000000000000000000000000000000000000000000000000000000" as Hex,
-          data: encoded,
-          value: 0n,
-        },
-      } as const;
+  // Publish sequentially — parallel txs from one registrar wallet cause nonce collisions
+  // and partial publishes (e.g. alias saved but url missing).
+  const ordered = [...grid.cells].sort((a, b) => {
+    if (a.key === "gridz.keys") return 1;
+    if (b.key === "gridz.keys") return -1;
+    return 0;
+  });
 
-      const attestHash = await walletClient.writeContract({
-        account,
-        chain: walletClient.chain,
-        address: eas,
-        abi: EAS_ABI,
-        functionName: "attest",
-        args: [request],
-      });
-      const attestReceipt = await publicClient.waitForTransactionReceipt({ hash: attestHash });
-      if (attestReceipt.status !== "success") {
-        throw new Error(`EAS attest for ${cell.key} reverted (tx ${attestHash})`);
-      }
-      const uid = getUIDsFromAttestReceipt(attestReceipt as never)[0] as Hex | undefined;
-      if (!uid) throw new Error(`EAS attest for ${cell.key} did not emit an Attested event`);
+  const uids: Hex[] = [];
+  for (const cell of ordered) {
+    const fields = easFieldsFromCell(cell);
+    const encoded = encodeCellAttestationData(fields);
+    const request = {
+      schema: cellSchema,
+      data: {
+        recipient: zero,
+        expirationTime: 0n,
+        revocable: true,
+        refUID: "0x0000000000000000000000000000000000000000000000000000000000000000" as Hex,
+        data: encoded,
+        value: 0n,
+      },
+    } as const;
 
-      const linkHash = await walletClient.writeContract({
-        account,
-        chain: walletClient.chain,
-        address: resolver,
-        abi: RESOLVER_ABI,
-        functionName: "setCellAttestation",
-        args: [node, cell.key, uid],
-      });
-      const linkReceipt = await publicClient.waitForTransactionReceipt({ hash: linkHash });
-      if (linkReceipt.status !== "success") {
-        throw new Error(`setCellAttestation for ${cell.key} reverted (tx ${linkHash})`);
-      }
+    const attestHash = await walletClient.writeContract({
+      account,
+      chain: walletClient.chain,
+      address: eas,
+      abi: EAS_ABI,
+      functionName: "attest",
+      args: [request],
+    });
+    const attestReceipt = await publicClient.waitForTransactionReceipt({ hash: attestHash });
+    if (attestReceipt.status !== "success") {
+      throw new Error(`EAS attest for ${cell.key} reverted (tx ${attestHash})`);
+    }
+    const uid = getUIDsFromAttestReceipt(attestReceipt as never)[0] as Hex | undefined;
+    if (!uid) throw new Error(`EAS attest for ${cell.key} did not emit an Attested event`);
 
-      return uid;
-    }),
-  );
+    const linkHash = await walletClient.writeContract({
+      account,
+      chain: walletClient.chain,
+      address: resolver,
+      abi: RESOLVER_ABI,
+      functionName: "setCellAttestation",
+      args: [node, cell.key, uid],
+    });
+    const linkReceipt = await publicClient.waitForTransactionReceipt({ hash: linkHash });
+    if (linkReceipt.status !== "success") {
+      throw new Error(`setCellAttestation for ${cell.key} reverted (tx ${linkHash})`);
+    }
+
+    uids.push(uid);
+  }
 
   return { txCount: grid.cells.length * 2, uids };
 }

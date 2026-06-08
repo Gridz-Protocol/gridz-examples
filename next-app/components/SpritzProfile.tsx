@@ -8,6 +8,7 @@ import {
   resolveSpritzWidget,
   spritzSpan,
 } from "./spritz/SpritzWidgets";
+import { normalizeUrl } from "../lib/normalizeUrl";
 import "./spritz-profile.css";
 
 export interface SpritzProfileProps {
@@ -61,12 +62,13 @@ export function SpritzProfile({ grid, subject }: SpritzProfileProps) {
             </p>
           ) : null}
           <div className="spritz-hero__actions">
-            {messageMe ? (
-              <a className="spritz-cta" href={String(messageMe.value)}>
-                {typeof messageMe.value === "string" ? "Message me" : "Contact"}
+            {messageMe && typeof messageMe.value === "string" && messageMe.value.trim() ? (
+              <a className="spritz-cta" href={normalizeUrl(String(messageMe.value))} target="_blank" rel="noreferrer noopener">
+                Message me
               </a>
-            ) : header.url ? (
-              <a className="spritz-cta" href={header.url} target="_blank" rel="noreferrer noopener">
+            ) : null}
+            {header.url ? (
+              <a className="spritz-cta spritz-cta--secondary" href={normalizeUrl(header.url)} target="_blank" rel="noreferrer noopener">
                 Visit site
               </a>
             ) : null}

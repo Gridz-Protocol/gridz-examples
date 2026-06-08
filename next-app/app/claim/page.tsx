@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { ProfileLookup } from "../../components/ProfileLookup";
 import { toEnsSubname } from "../../lib/ensNames";
 
 const ENS_BASE = process.env.NEXT_PUBLIC_GRIDZ_ENS_BASE ?? "gridz.eth";
@@ -29,6 +30,12 @@ export default function ClaimPage() {
           Pick a name, connect your wallet, sign your profile, and publish. You get{" "}
           <code>you.{ENS_BASE}</code> on-chain and <code>you.{SITE_DOMAIN}</code> on the web.
         </p>
+      </section>
+
+      <section className="claim-lookup">
+        <h2>Already claimed?</h2>
+        <p className="claim-hero__lead">Look up your name first — view your live profile or continue a draft.</p>
+        <ProfileLookup showClaimHint={false} />
       </section>
 
       <section className="claim-picker">

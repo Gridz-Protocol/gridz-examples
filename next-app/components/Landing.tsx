@@ -1,22 +1,13 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { toEnsSubname } from "../lib/ensNames";
+import { ProfileLookup } from "./ProfileLookup";
 
 const ENS_BASE = process.env.NEXT_PUBLIC_GRIDZ_ENS_BASE ?? "gridz.eth";
 const SITE_DOMAIN = process.env.NEXT_PUBLIC_SITE_DOMAIN ?? "gridz.bio";
 
 export function Landing() {
-  const [alias, setAlias] = useState("");
   const router = useRouter();
-
-  function goToProfile(raw: string) {
-    const trimmed = raw.trim().toLowerCase();
-    if (!trimmed) return;
-    const subject = trimmed.includes(".") ? trimmed : toEnsSubname(trimmed, ENS_BASE);
-    router.push(`/${encodeURIComponent(subject)}`);
-  }
 
   return (
     <div className="landing">
@@ -31,37 +22,15 @@ export function Landing() {
           <code>you.{ENS_BASE}</code>, share at <code>you.{SITE_DOMAIN}</code>, and let anyone verify
           every cell independently.
         </p>
-        <form
-          className="landing__search"
-          onSubmit={(e) => {
-            e.preventDefault();
-            goToProfile(alias);
-          }}
-        >
-          <input
-            className="site-input"
-            value={alias}
-            onChange={(e) => setAlias(e.target.value)}
-            placeholder={`kevin`}
-            aria-label="Profile alias"
-          />
-          <button type="submit" className="site-btn site-btn--ghost">
-            View
-          </button>
-          <button
-            type="button"
-            className="site-btn site-btn--primary"
-            onClick={() => router.push("/claim")}
-          >
+        <ProfileLookup />
+        <div className="landing__cta-row">
+          <button type="button" className="site-btn site-btn--primary" onClick={() => router.push("/claim")}>
             Claim yours
           </button>
-        </form>
-        <p style={{ color: "var(--site-muted)", fontSize: 14 }}>
-          Example:{" "}
-          <button type="button" className="site-btn site-btn--ghost" onClick={() => goToProfile("bot")}>
-            bot.{SITE_DOMAIN}
+          <button type="button" className="site-btn site-btn--ghost" onClick={() => router.push("/find")}>
+            Find a profile
           </button>
-        </p>
+        </div>
       </section>
       <section className="landing__features">
         <article className="landing__card">
@@ -69,14 +38,12 @@ export function Landing() {
           <p>Every field is signed. Visitors re-check attestations without trusting a server.</p>
         </article>
         <article className="landing__card">
-          <h3>ENS subnames</h3>
-          <p>
-            Register <code>alias.{ENS_BASE}</code> once — wildcard resolver serves every entity under gridz.eth.
-          </p>
+          <h3>Spritz-style widgets</h3>
+          <p>Stats, polls, countdowns, guestbooks — a full bento grid like Spritz, on-chain.</p>
         </article>
         <article className="landing__card">
           <h3>Edit in the browser</h3>
-          <p>Connect a wallet, update your profile, and publish when your name is ready.</p>
+          <p>Connect a wallet, add widgets, and publish when your profile is ready.</p>
         </article>
         <article className="landing__card">
           <h3>Pretty URLs</h3>

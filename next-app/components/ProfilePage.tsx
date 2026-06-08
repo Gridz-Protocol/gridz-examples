@@ -6,6 +6,8 @@ import { ClaimSteps } from "./ClaimSteps";
 import { ProfileEditor } from "./ProfileEditor";
 import { SpritzProfile } from "./SpritzProfile";
 import { loadDraft } from "../lib/drafts";
+import { mergeGrids } from "../lib/mergeGrids";
+import { rememberProfile } from "../lib/recentProfiles";
 import { bioUrlForEns } from "../lib/subjectFromHost";
 
 export interface ProfilePageProps {
@@ -23,15 +25,17 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
   const displayAlias = subject.split(".")[0] ?? subject;
 
   useEffect(() => {
-    if (chainGrid) {
-      setGrid(chainGrid);
-      setSource("chain");
-      return;
-    }
+    rememberProfile(subject);
+  }, [subject]);
+
+  useEffect(() => {
     const draft = loadDraft(subject);
-    if (draft) {
-      setGrid(draft);
-      setSource("draft");
+    const merged = mergeGrids(chainGrid, draft);
+    if (merged) {
+      const chainKeys = new Set(chainGrid?.cells.map((c) => c.key) ?? []);
+      const draftOnly = draft?.cells.some((c) => !chainKeys.has(c.key)) ?? false;
+      setGrid(merged);
+      setSource(chainGrid ? (draftOnly ? "draft" : "chain") : "draft");
     } else {
       setGrid(null);
       setSource("none");

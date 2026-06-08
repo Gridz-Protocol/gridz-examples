@@ -34,6 +34,7 @@ const FALLBACK_KEYS = [
   "com.github",
   "com.discord",
   "social.bsky",
+  "org.telegram",
 ] as const;
 
 const RESOLVER_ABI = [
@@ -95,7 +96,9 @@ async function readKeys(
   if (manifest) {
     try {
       const keys = JSON.parse(manifest) as string[];
-      if (Array.isArray(keys) && keys.length) return keys;
+      if (Array.isArray(keys) && keys.length) {
+        return [...new Set([...keys, ...FALLBACK_KEYS])];
+      }
     } catch {
       /* ignore */
     }

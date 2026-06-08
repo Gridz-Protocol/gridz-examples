@@ -37,7 +37,7 @@ export function isSocialKey(key: string): boolean {
 
 export function widgetCells(grid: Grid): Cell[] {
   return grid.cells
-    .filter((c) => c.is_visible && !HEADER_KEYS.has(c.key) && !isSocialKey(c.key))
+    .filter((c) => c.is_visible && !HEADER_KEYS.has(c.key) && !isSocialKey(c.key) && c.key !== "gridz.message_me")
     .sort((a, b) => a.position.y - b.position.y || a.position.x - b.position.x);
 }
 

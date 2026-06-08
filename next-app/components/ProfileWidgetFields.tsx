@@ -1,6 +1,23 @@
 "use client";
 
-import type { ProfileEditorState, StatRow } from "../lib/profileFields";
+import type { ReactNode } from "react";
+
+import type { GuestbookEntry, ProfileEditorState, StatRow } from "../lib/profileFields";
+import { isWidgetEnabled, setWidgetEnabled } from "../lib/profileFields";
+import { WIDGET_CATALOG, type WidgetKind } from "../lib/widgetCatalog";
+
+const TIMEZONES = [
+  "America/New_York",
+  "America/Chicago",
+  "America/Denver",
+  "America/Los_Angeles",
+  "Europe/London",
+  "Europe/Paris",
+  "Asia/Tokyo",
+  "Asia/Singapore",
+  "Australia/Sydney",
+  "UTC",
+];
 
 export interface ProfileWidgetFieldsProps {
   fields: ProfileEditorState;
@@ -11,182 +28,178 @@ export interface ProfileWidgetFieldsProps {
 export function ProfileWidgetFields({ fields, onChange, disabled }: ProfileWidgetFieldsProps) {
   const set = (patch: Partial<ProfileEditorState>) => onChange({ ...fields, ...patch });
 
+  const toggle = (id: WidgetKind) => {
+    onChange(setWidgetEnabled(fields, id, !isWidgetEnabled(fields, id)));
+  };
+
   const setStat = (index: number, patch: Partial<StatRow>) => {
-    const stats = fields.stats.map((row, i) => (i === index ? { ...row, ...patch } : row));
-    set({ stats });
+    set({ stats: fields.stats.map((row, i) => (i === index ? { ...row, ...patch } : row)) });
   };
 
   const setPollOption = (index: number, value: string) => {
-    const pollOptions = fields.pollOptions.map((o, i) => (i === index ? value : o));
-    set({ pollOptions });
+    set({ pollOptions: fields.pollOptions.map((o, i) => (i === index ? value : o)) });
+  };
+
+  const setGuest = (index: number, patch: Partial<GuestbookEntry>) => {
+    set({
+      guestbookEntries: fields.guestbookEntries.map((e, i) => (i === index ? { ...e, ...patch } : e)),
+    });
   };
 
   return (
     <div className="profile-widgets">
       <h4 className="profile-widgets__title">Social links</h4>
-      <p className="profile-widgets__hint">Handles appear as buttons on your profile header (not in the widget grid).</p>
-      <div className="profile-widgets__grid">
+      <p className="profile-widgets__hint">Shown as buttons in your profile header.</p>
+      <div className="profile-widgets__grid profile-widgets__grid--social">
         <div className="site-field">
           <label className="site-label" htmlFor="twitter">X / Twitter</label>
-          <input
-            id="twitter"
-            className="site-input"
-            value={fields.twitter}
-            onChange={(e) => set({ twitter: e.target.value })}
-            placeholder="handle (no @)"
-            disabled={disabled}
-          />
+          <input id="twitter" className="site-input" value={fields.twitter} onChange={(e) => set({ twitter: e.target.value })} placeholder="handle" disabled={disabled} />
         </div>
         <div className="site-field">
           <label className="site-label" htmlFor="github">GitHub</label>
-          <input
-            id="github"
-            className="site-input"
-            value={fields.github}
-            onChange={(e) => set({ github: e.target.value })}
-            placeholder="username"
-            disabled={disabled}
-          />
+          <input id="github" className="site-input" value={fields.github} onChange={(e) => set({ github: e.target.value })} placeholder="username" disabled={disabled} />
         </div>
         <div className="site-field">
           <label className="site-label" htmlFor="bsky">Bluesky</label>
-          <input
-            id="bsky"
-            className="site-input"
-            value={fields.bsky}
-            onChange={(e) => set({ bsky: e.target.value })}
-            placeholder="handle.bsky.social"
-            disabled={disabled}
-          />
+          <input id="bsky" className="site-input" value={fields.bsky} onChange={(e) => set({ bsky: e.target.value })} placeholder="you.bsky.social" disabled={disabled} />
+        </div>
+        <div className="site-field">
+          <label className="site-label" htmlFor="discord">Discord</label>
+          <input id="discord" className="site-input" value={fields.discord} onChange={(e) => set({ discord: e.target.value })} placeholder="handle" disabled={disabled} />
+        </div>
+        <div className="site-field">
+          <label className="site-label" htmlFor="telegram">Telegram</label>
+          <input id="telegram" className="site-input" value={fields.telegram} onChange={(e) => set({ telegram: e.target.value })} placeholder="username" disabled={disabled} />
         </div>
       </div>
 
-      <h4 className="profile-widgets__title">Widget cards</h4>
-      <p className="profile-widgets__hint">These show in the bento grid on your public profile.</p>
+      <h4 className="profile-widgets__title">Add widgets</h4>
+      <p className="profile-widgets__hint">
+        Tap to add Spritz-style cards to your bento grid — stats, polls, countdowns, and more.
+      </p>
+      <div className="widget-picker">
+        {WIDGET_CATALOG.map((w) => {
+          const on = isWidgetEnabled(fields, w.id);
+          return (
+            <button
+              key={w.id}
+              type="button"
+              className={`widget-picker__card${on ? " widget-picker__card--on" : ""}`}
+              disabled={disabled}
+              onClick={() => toggle(w.id)}
+              aria-pressed={on}
+            >
+              <span className="widget-picker__icon" aria-hidden>{w.icon}</span>
+              <span className="widget-picker__name">{w.name}</span>
+              <span className="widget-picker__desc">{w.description}</span>
+              {on ? <span className="widget-picker__badge">Added</span> : null}
+            </button>
+          );
+        })}
+      </div>
 
-      <label className="profile-widgets__toggle">
-        <input
-          type="checkbox"
-          checked={fields.statsEnabled}
-          onChange={(e) => set({ statsEnabled: e.target.checked })}
-          disabled={disabled}
-        />
-        <span>Stats</span>
-      </label>
+      {fields.messageMeEnabled ? (
+        <WidgetPanel title="Contact button">
+          <div className="site-field">
+            <label className="site-label" htmlFor="message-url">Link (mailto, Telegram, cal.com…)</label>
+            <input id="message-url" className="site-input" value={fields.messageMeUrl} onChange={(e) => set({ messageMeUrl: e.target.value })} placeholder="https://t.me/you" disabled={disabled} />
+          </div>
+        </WidgetPanel>
+      ) : null}
+
+      {fields.availabilityEnabled ? (
+        <WidgetPanel title="Status">
+          <div className="profile-widgets__inline">
+            <label><input type="radio" checked={fields.availabilityStatus === "available"} onChange={() => set({ availabilityStatus: "available" })} disabled={disabled} /> Available</label>
+            <label><input type="radio" checked={fields.availabilityStatus === "busy"} onChange={() => set({ availabilityStatus: "busy" })} disabled={disabled} /> Busy</label>
+          </div>
+          <input className="site-input" value={fields.availabilityMessage} onChange={(e) => set({ availabilityMessage: e.target.value })} placeholder="Optional message" disabled={disabled} />
+        </WidgetPanel>
+      ) : null}
+
+      {fields.currentlyEnabled ? (
+        <WidgetPanel title="Currently">
+          <input className="site-input" value={fields.currentlyEmoji} onChange={(e) => set({ currentlyEmoji: e.target.value })} placeholder="Emoji" disabled={disabled} style={{ maxWidth: 80 }} />
+          <input className="site-input" value={fields.currentlyTitle} onChange={(e) => set({ currentlyTitle: e.target.value })} placeholder="Title — e.g. Starship" disabled={disabled} />
+          <input className="site-input" value={fields.currentlySubtitle} onChange={(e) => set({ currentlySubtitle: e.target.value })} placeholder="Subtitle" disabled={disabled} />
+        </WidgetPanel>
+      ) : null}
+
       {fields.statsEnabled ? (
-        <div className="profile-widgets__panel">
+        <WidgetPanel title="Stats">
           {fields.stats.map((row, i) => (
             <div key={i} className="profile-widgets__stat-row">
-              <input
-                className="site-input"
-                value={row.label}
-                onChange={(e) => setStat(i, { label: e.target.value })}
-                placeholder="Label"
-                disabled={disabled}
-              />
-              <input
-                className="site-input"
-                value={row.value}
-                onChange={(e) => setStat(i, { value: e.target.value })}
-                placeholder="Value"
-                disabled={disabled}
-              />
+              <input className="site-input" value={row.label} onChange={(e) => setStat(i, { label: e.target.value })} placeholder="Label" disabled={disabled} />
+              <input className="site-input" value={row.value} onChange={(e) => setStat(i, { value: e.target.value })} placeholder="Value" disabled={disabled} />
             </div>
           ))}
-          <button
-            type="button"
-            className="site-btn"
-            disabled={disabled || fields.stats.length >= 4}
-            onClick={() => set({ stats: [...fields.stats, { label: "", value: "" }] })}
-          >
-            Add stat
-          </button>
-        </div>
+          <button type="button" className="site-btn" disabled={disabled || fields.stats.length >= 6} onClick={() => set({ stats: [...fields.stats, { label: "", value: "" }] })}>Add stat</button>
+        </WidgetPanel>
       ) : null}
 
-      <label className="profile-widgets__toggle">
-        <input
-          type="checkbox"
-          checked={fields.pollEnabled}
-          onChange={(e) => set({ pollEnabled: e.target.checked })}
-          disabled={disabled}
-        />
-        <span>Poll</span>
-      </label>
+      {fields.countdownEnabled ? (
+        <WidgetPanel title="Countdown">
+          <input className="site-input" value={fields.countdownLabel} onChange={(e) => set({ countdownLabel: e.target.value })} placeholder="Label — e.g. Mars Mission" disabled={disabled} />
+          <input className="site-input" type="datetime-local" value={fields.countdownTarget} onChange={(e) => set({ countdownTarget: e.target.value })} disabled={disabled} />
+        </WidgetPanel>
+      ) : null}
+
       {fields.pollEnabled ? (
-        <div className="profile-widgets__panel">
-          <div className="site-field">
-            <label className="site-label" htmlFor="poll-q">Question</label>
-            <input
-              id="poll-q"
-              className="site-input"
-              value={fields.pollQuestion}
-              onChange={(e) => set({ pollQuestion: e.target.value })}
-              placeholder="Ask your visitors something…"
-              disabled={disabled}
-            />
-          </div>
+        <WidgetPanel title="Poll">
+          <input className="site-input" value={fields.pollQuestion} onChange={(e) => set({ pollQuestion: e.target.value })} placeholder="Question" disabled={disabled} />
           {fields.pollOptions.map((opt, i) => (
-            <div key={i} className="site-field">
-              <label className="site-label" htmlFor={`poll-opt-${i}`}>Option {i + 1}</label>
-              <input
-                id={`poll-opt-${i}`}
-                className="site-input"
-                value={opt}
-                onChange={(e) => setPollOption(i, e.target.value)}
-                placeholder={`Choice ${i + 1}`}
-                disabled={disabled}
-              />
-            </div>
+            <input key={i} className="site-input" value={opt} onChange={(e) => setPollOption(i, e.target.value)} placeholder={`Option ${i + 1}`} disabled={disabled} />
           ))}
           {fields.pollOptions.length < 4 ? (
-            <button
-              type="button"
-              className="site-btn"
-              disabled={disabled}
-              onClick={() => set({ pollOptions: [...fields.pollOptions, ""] })}
-            >
-              Add option
-            </button>
+            <button type="button" className="site-btn" disabled={disabled} onClick={() => set({ pollOptions: [...fields.pollOptions, ""] })}>Add option</button>
           ) : null}
-        </div>
+        </WidgetPanel>
       ) : null}
 
-      <label className="profile-widgets__toggle">
-        <input
-          type="checkbox"
-          checked={fields.linkEnabled}
-          onChange={(e) => set({ linkEnabled: e.target.checked })}
-          disabled={disabled}
-        />
-        <span>Featured link card</span>
-      </label>
-      {fields.linkEnabled ? (
-        <div className="profile-widgets__panel">
-          <div className="site-field">
-            <label className="site-label" htmlFor="link-label">Label</label>
-            <input
-              id="link-label"
-              className="site-input"
-              value={fields.linkLabel}
-              onChange={(e) => set({ linkLabel: e.target.value })}
-              placeholder="My newsletter"
-              disabled={disabled}
-            />
-          </div>
-          <div className="site-field">
-            <label className="site-label" htmlFor="link-url">URL</label>
-            <input
-              id="link-url"
-              className="site-input"
-              value={fields.linkUrl}
-              onChange={(e) => set({ linkUrl: e.target.value })}
-              placeholder="https://"
-              disabled={disabled}
-            />
-          </div>
-        </div>
+      {fields.clockEnabled ? (
+        <WidgetPanel title="Local time">
+          <select className="site-input" value={fields.clockTimezone} onChange={(e) => set({ clockTimezone: e.target.value })} disabled={disabled}>
+            {TIMEZONES.map((tz) => (
+              <option key={tz} value={tz}>{tz.replace(/_/g, " ")}</option>
+            ))}
+          </select>
+        </WidgetPanel>
       ) : null}
+
+      {fields.textEnabled ? (
+        <WidgetPanel title="Quote">
+          <textarea className="site-textarea" rows={3} value={fields.textContent} onChange={(e) => set({ textContent: e.target.value })} placeholder="A short quote or announcement…" disabled={disabled} />
+        </WidgetPanel>
+      ) : null}
+
+      {fields.guestbookEnabled ? (
+        <WidgetPanel title="Guestbook">
+          <p className="profile-widgets__hint">Curate messages shown on your profile (static until visitor signing ships).</p>
+          {fields.guestbookEntries.map((entry, i) => (
+            <div key={i} className="profile-widgets__guest-row">
+              <input className="site-input" value={entry.text} onChange={(e) => setGuest(i, { text: e.target.value })} placeholder="Message" disabled={disabled} />
+              <input className="site-input" value={entry.author} onChange={(e) => setGuest(i, { author: e.target.value })} placeholder="Author" disabled={disabled} />
+            </div>
+          ))}
+          <button type="button" className="site-btn" disabled={disabled || fields.guestbookEntries.length >= 5} onClick={() => set({ guestbookEntries: [...fields.guestbookEntries, { text: "", author: "" }] })}>Add entry</button>
+        </WidgetPanel>
+      ) : null}
+
+      {fields.linkEnabled ? (
+        <WidgetPanel title="Featured link">
+          <input className="site-input" value={fields.linkLabel} onChange={(e) => set({ linkLabel: e.target.value })} placeholder="Label" disabled={disabled} />
+          <input className="site-input" value={fields.linkUrl} onChange={(e) => set({ linkUrl: e.target.value })} placeholder="https://" disabled={disabled} />
+        </WidgetPanel>
+      ) : null}
+    </div>
+  );
+}
+
+function WidgetPanel({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <div className="profile-widgets__panel">
+      <h5 className="profile-widgets__panel-title">{title}</h5>
+      {children}
     </div>
   );
 }
