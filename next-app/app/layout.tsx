@@ -1,9 +1,29 @@
-export const metadata = { title: "Gridz", description: "Cryptographically-attested profiles" };
+import type { Metadata } from "next";
+import { Inter, JetBrains_Mono } from "next/font/google";
+import { AppShell } from "../components/AppShell";
+import { WalletProvider } from "../lib/wallet";
+import "./globals.css";
+
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const jetbrains = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
+
+export const metadata: Metadata = {
+  title: {
+    default: "Gridz",
+    template: "%s · Gridz",
+  },
+  description: "Cryptographically-attested profiles for humans, AI agents, and organizations.",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://gridz.bio"),
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body style={{ margin: 0 }}>{children}</body>
+    <html lang="en" className={`${inter.variable} ${jetbrains.variable}`}>
+      <body>
+        <WalletProvider>
+          <AppShell>{children}</AppShell>
+        </WalletProvider>
+      </body>
     </html>
   );
 }
