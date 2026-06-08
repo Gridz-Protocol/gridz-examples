@@ -70,17 +70,30 @@ export function countCellsToSign(
   return n + 1;
 }
 
+const ZERO_HASH = `0x${"0".repeat(64)}`;
+
+function effectiveValueHash(cell: Cell): string | null {
+  const raw = cell.attestation?.value_hash;
+  if (!raw || raw === ZERO_HASH) {
+    const algo = algoForFormat(cell.attestation?.format ?? "eip712-raw");
+    return valueHash(algo, cell.value);
+  }
+  return raw;
+}
+
 export function countCellsToPublish(grid: Grid, chainBaseline: Grid | null | undefined): number {
   if (!chainBaseline) return grid.cells.length;
   const byKey = baselineCellByKey(chainBaseline);
   let n = 0;
   for (const cell of grid.cells) {
     const onChain = byKey.get(cell.key);
-    if (!onChain?.attestation?.value_hash || !cell.attestation?.value_hash) {
+    if (!onChain) {
       n += 1;
       continue;
     }
-    if (onChain.attestation.value_hash !== cell.attestation.value_hash) n += 1;
+    const prev = effectiveValueHash(onChain);
+    const next = effectiveValueHash(cell);
+    if (!prev || !next || prev !== next) n += 1;
   }
   return n;
 }

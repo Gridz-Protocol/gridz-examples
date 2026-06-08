@@ -1,4 +1,6 @@
 import {
+  algoForFormat,
+  valueHash,
   SCHEMA_VERSION,
   type Cell,
   type Grid,
@@ -134,21 +136,24 @@ export async function loadGridFromResolver(
 
     const pos = defaultPosition(i);
     const widget_type = key.startsWith("gridz.") ? key : undefined;
+    const parsed = tryParseJson(value);
+    const format = uid === ZERO_UID ? "eip712-raw" : "eas-onchain";
+    const algo = algoForFormat(format);
     cells.push({
       id: key,
       key,
-      value: tryParseJson(value),
+      value: parsed,
       ...(widget_type ? { widget_type } : {}),
       position: { x: pos.x, y: pos.y, w: pos.w, h: pos.h },
       size: pos.size,
       is_visible: !key.startsWith("gridz.att["),
       attestation: {
-        format: uid === ZERO_UID ? "eip712-raw" : "eas-onchain",
+        format,
         uid,
         uri: uid === ZERO_UID ? `ens://${subject}/${key}` : `eas://${uid}`,
         attester: subject,
-        iat: new Date().toISOString(),
-        value_hash: ZERO_UID,
+        iat: "1970-01-01T00:00:00.000Z",
+        value_hash: valueHash(algo, parsed),
       },
     });
   }

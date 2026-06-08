@@ -126,11 +126,25 @@ export function ProfileEditor({ ensName, initial, onSaved, isClaim = false }: Pr
           });
           return;
         }
+
+        const published = result.publishedCellCount ?? 0;
+        if (published === 0 && (result.txCount ?? 0) === 0) {
+          saveDraft(ensName, grid);
+          onSaved(grid, "draft");
+          setPublishUi({
+            phase: "error",
+            errorMessage:
+              "Nothing new reached the chain. Try changing a field, signing again, and publishing once more.",
+            draftSaved: true,
+          });
+          return;
+        }
+
         saveDraft(ensName, grid);
         onSaved(grid, "chain");
         setPublishUi({
           phase: "success",
-          cellCount: result.publishedCellCount ?? grid.cells.length,
+          cellCount: published || grid.cells.length,
           txCount: result.txCount,
         });
       } catch (e) {

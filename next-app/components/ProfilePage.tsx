@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { Grid } from "@gridz/core";
 import { ClaimSteps } from "./ClaimSteps";
 import { ProfileEditor } from "./ProfileEditor";
@@ -18,6 +19,8 @@ export interface ProfilePageProps {
 }
 
 export function ProfilePage({ subject, chainGrid, startClaiming = false }: ProfilePageProps) {
+  const router = useRouter();
+  const publishedRef = useRef(false);
   const [editing, setEditing] = useState(startClaiming);
   const [grid, setGrid] = useState<Grid | null>(chainGrid);
   const [source, setSource] = useState<"chain" | "draft" | "none">(chainGrid ? "chain" : "none");
@@ -30,6 +33,10 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
   }, [subject]);
 
   useEffect(() => {
+    if (publishedRef.current) {
+      publishedRef.current = false;
+      return;
+    }
     const draft = loadDraft(subject);
     const merged = mergeGrids(chainGrid, draft);
     if (merged) {
@@ -43,11 +50,16 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
     }
   }, [chainGrid, subject]);
 
-  const onSaved = useCallback((g: Grid, src: "draft" | "chain") => {
-    setGrid(g);
-    setSource(src);
-    setEditing(false);
-  }, []);
+  const onSaved = useCallback(
+    (g: Grid, src: "draft" | "chain") => {
+      publishedRef.current = src === "chain";
+      setGrid(g);
+      setSource(src);
+      setEditing(false);
+      if (src === "chain") router.refresh();
+    },
+    [router],
+  );
 
   const demo = isDemoProfile(subject);
 

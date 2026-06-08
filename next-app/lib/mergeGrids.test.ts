@@ -67,4 +67,24 @@ describe("mergeGrids", () => {
     expect(byKey.description).toBe("On chain only");
     expect(byKey.url).toBe("https://gridz.bio");
   });
-});
+
+  it("prefers wallet-signed draft over a newer on-chain snapshot", () => {
+    const chain = grid([cell("alias", "Stale on-chain", "2026-06-08T12:00:00.000Z")]);
+    chain.cells[0]!.attestation.format = "eas-onchain";
+    const draft = grid([
+      {
+        ...cell("alias", "Fresh draft", "2026-01-01T00:00:00.000Z"),
+        attestation: {
+          format: "eip712-raw",
+          uid: `0x${"a".repeat(64)}`,
+          uri: "data://inline/draft",
+          attester: "did:pkh:eip155:1:0xabc",
+          iat: "2026-01-01T00:00:00.000Z",
+          value_hash: `0x${"b".repeat(64)}`,
+          payload: "eyJ0ZXN0IjoidHJ1ZSJ9",
+        },
+      },
+    ]);
+    const merged = mergeGrids(chain, draft)!;
+    expect(merged.cells.find((c) => c.key === "alias")?.value).toBe("Fresh draft");
+  });});

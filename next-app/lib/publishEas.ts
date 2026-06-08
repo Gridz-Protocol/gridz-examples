@@ -1,4 +1,4 @@
-import { decodeBundle, type Cell, type Grid, type Hex } from "@gridz/core";
+import { algoForFormat, decodeBundle, valueHash, type Cell, type Grid, type Hex } from "@gridz/core";
 import { countCellsToPublish } from "./incrementalProfileGrid";
 import { getUIDsFromAttestReceipt } from "@ethereum-attestation-service/eas-sdk";
 import type { PublicClient, WalletClient } from "viem";
@@ -59,11 +59,25 @@ const RESOLVER_ABI = [
 ] as const;
 
 
+const ZERO_HASH = `0x${"0".repeat(64)}` as Hex;
+
+function chainValueHash(cell: Cell): Hex | null {
+  const raw = cell.attestation?.value_hash;
+  if (!raw || raw === ZERO_HASH) {
+    const algo = algoForFormat(cell.attestation?.format ?? "eip712-raw");
+    return valueHash(algo, cell.value);
+  }
+  return raw;
+}
+
 function shouldPublishCell(cell: Cell, chainBaseline: Grid | null | undefined): boolean {
   if (!chainBaseline) return true;
   const onChain = chainBaseline.cells.find((c) => c.key === cell.key);
-  if (!onChain?.attestation?.value_hash || !cell.attestation?.value_hash) return true;
-  return onChain.attestation.value_hash !== cell.attestation.value_hash;
+  if (!onChain) return true;
+  const prev = chainValueHash(onChain);
+  const next = chainValueHash(cell);
+  if (!prev || !next) return true;
+  return prev !== next;
 }
 
 function displayValue(cell: Cell): string {
