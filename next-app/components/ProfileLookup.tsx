@@ -1,10 +1,14 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { toEnsSubname } from "../lib/ensNames";
 import { loadDraftBundle } from "../lib/drafts";
 import { rememberProfile } from "../lib/recentProfiles";
+import {
+  type ProfileSearchMatch,
+  resolveSearchSubject,
+  searchProfileMatches,
+} from "../lib/profileSearch";
 
 const ENS_BASE = process.env.NEXT_PUBLIC_GRIDZ_ENS_BASE ?? "gridz.eth";
 const SITE_DOMAIN = process.env.NEXT_PUBLIC_SITE_DOMAIN ?? "gridz.bio";
@@ -24,19 +28,49 @@ export interface ProfileLookupProps {
 export function ProfileLookup({ autoFocus, showClaimHint = true }: ProfileLookupProps) {
   const [alias, setAlias] = useState("");
   const [state, setState] = useState<LookupState>({ phase: "idle" });
+  const [suggestions, setSuggestions] = useState<ProfileSearchMatch[]>([]);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
+  const searchGen = useRef(0);
   const router = useRouter();
 
-  const resolveSubject = useCallback((raw: string) => {
-    const trimmed = raw.trim().toLowerCase().replace(/[^a-z0-9.-]/g, "");
-    if (!trimmed) return "";
-    return trimmed.includes(".") ? trimmed : toEnsSubname(trimmed, ENS_BASE);
-  }, []);
+  const resolveSubject = useCallback((raw: string) => resolveSearchSubject(raw), []);
+
+  useEffect(() => {
+    const q = alias.trim();
+    if (q.length < 1) {
+      setSuggestions([]);
+      setSuggestionsLoading(false);
+      return;
+    }
+
+    const gen = ++searchGen.current;
+    setSuggestionsLoading(true);
+
+    const timer = window.setTimeout(() => {
+      void searchProfileMatches(q).then((matches) => {
+        if (searchGen.current !== gen) return;
+        setSuggestions(matches);
+        setSuggestionsLoading(false);
+      });
+    }, 200);
+
+    return () => window.clearTimeout(timer);
+  }, [alias]);
+
+  const openProfile = useCallback(
+    (subject: string) => {
+      rememberProfile(subject);
+      router.push(`/${encodeURIComponent(subject)}`);
+    },
+    [router],
+  );
 
   const lookup = useCallback(
     async (raw: string) => {
       const subject = resolveSubject(raw);
       if (!subject) return;
       setState({ phase: "loading" });
+      setSuggestions([]);
       try {
         const res = await fetch(`/api/profile/${encodeURIComponent(subject)}`);
         const data = (await res.json()) as {
@@ -74,6 +108,10 @@ export function ProfileLookup({ autoFocus, showClaimHint = true }: ProfileLookup
 
   const short = alias.trim().toLowerCase().replace(/[^a-z0-9-]/g, "");
   const bioHost = short ? `${short}.${SITE_DOMAIN}` : "";
+  const showSuggestions =
+    alias.trim().length > 0 &&
+    state.phase !== "loading" &&
+    (suggestions.length > 0 || suggestionsLoading);
 
   return (
     <div className="profile-lookup">
@@ -93,6 +131,8 @@ export function ProfileLookup({ autoFocus, showClaimHint = true }: ProfileLookup
           }}
           placeholder="kevin or kevin.gridz.eth"
           aria-label="Profile name"
+          aria-autocomplete="list"
+          aria-controls={showSuggestions ? "profile-lookup-suggestions" : undefined}
           autoFocus={autoFocus}
         />
         <button type="submit" className="site-btn site-btn--primary" disabled={!short || state.phase === "loading"}>
@@ -100,7 +140,34 @@ export function ProfileLookup({ autoFocus, showClaimHint = true }: ProfileLookup
         </button>
       </form>
 
-      {short ? (
+      {showSuggestions ? (
+        <ul id="profile-lookup-suggestions" className="profile-lookup__suggestions" role="listbox">
+          {suggestionsLoading && suggestions.length === 0 ? (
+            <li className="profile-lookup__suggestion profile-lookup__suggestion--muted">Searching…</li>
+          ) : null}
+          {suggestions.map((match) => (
+            <li key={match.subject} role="option">
+              <button
+                type="button"
+                className="profile-lookup__suggestion"
+                onClick={() => openProfile(match.subject)}
+              >
+                <span className="profile-lookup__suggestion-main">
+                  <strong>{match.displayName ?? match.alias}</strong>
+                  <span className="profile-lookup__suggestion-sub">{match.subject}</span>
+                </span>
+                {match.status === "published" ? (
+                  <span className="site-badge site-badge--live">On-chain</span>
+                ) : match.status === "draft" ? (
+                  <span className="site-badge site-badge--draft">Draft</span>
+                ) : null}
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+
+      {short && !showSuggestions ? (
         <p className="profile-lookup__hint">
           Looks up <code>{short}.{ENS_BASE}</code> · <code>{bioHost}</code>
         </p>
@@ -120,7 +187,7 @@ export function ProfileLookup({ autoFocus, showClaimHint = true }: ProfileLookup
             <button
               type="button"
               className="site-btn site-btn--primary"
-              onClick={() => router.push(`/${encodeURIComponent(state.subject)}`)}
+              onClick={() => openProfile(state.subject)}
             >
               View profile
             </button>
@@ -156,7 +223,7 @@ export function ProfileLookup({ autoFocus, showClaimHint = true }: ProfileLookup
                 <button
                   type="button"
                   className="site-btn"
-                  onClick={() => router.push(`/${encodeURIComponent(state.subject)}`)}
+                  onClick={() => openProfile(state.subject)}
                 >
                   Open draft
                 </button>

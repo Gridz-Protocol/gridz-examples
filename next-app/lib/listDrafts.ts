@@ -1,4 +1,4 @@
-import { loadDraft } from "./drafts";
+import { loadDraftBundle } from "./drafts";
 
 const PREFIX = "gridz:draft:";
 
@@ -9,7 +9,7 @@ export function listDraftSubjects(): string[] {
     const key = localStorage.key(i);
     if (!key?.startsWith(PREFIX)) continue;
     const subject = key.slice(PREFIX.length);
-    if (loadDraft(subject)) out.push(subject);
+    if (loadDraftBundle(subject)) out.push(subject);
   }
   return out.sort();
 }
