@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import type { Grid } from "@gridz/core";
 import { ClaimSteps } from "./ClaimSteps";
 import { ProfileEditor } from "./ProfileEditor";
+import { ProfileVerifyModal } from "./ProfileVerifyModal";
 import { SpritzProfile } from "./SpritzProfile";
+import { profileApiUrl } from "../lib/profileVerifyGuide";
 import { loadDraftBundle } from "../lib/drafts";
 import { mergeFieldPreview } from "../lib/previewGrid";
 import { rememberProfile } from "../lib/recentProfiles";
@@ -28,6 +30,7 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
   const [grid, setGrid] = useState<Grid | null>(chainGrid);
   const [source, setSource] = useState<"chain" | "draft" | "none">(chainGrid ? "chain" : "none");
   const [draftBundle, setDraftBundle] = useState(() => loadDraftBundle(subject));
+  const [verifyOpen, setVerifyOpen] = useState(false);
 
   const bioUrl = useMemo(() => bioUrlForEns(subject), [subject]);
   const displayAlias = subject.split(".")[0] ?? subject;
@@ -103,16 +106,21 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
               ) : null}
               {" "}
               ·{" "}
-              <a href={`/api/profile/${encodeURIComponent(subject)}`} target="_blank" rel="noreferrer">
+              <a href={profileApiUrl(subject)} target="_blank" rel="noreferrer noopener">
                 JSON API
               </a>
             </p>
           </div>
           {source === "chain" ? <span className="site-badge site-badge--live">On-chain</span> : null}
           {source === "draft" ? <span className="site-badge site-badge--draft">Draft</span> : null}
-          <button type="button" className="site-btn site-btn--primary" onClick={() => setEditing((v) => !v)}>
-            {editing ? "Close editor" : grid ? "Edit profile" : "Claim profile"}
-          </button>
+          <div className="profile-toolbar__actions">
+            <button type="button" className="site-btn" onClick={() => setVerifyOpen(true)}>
+              Query &amp; verify
+            </button>
+            <button type="button" className="site-btn site-btn--primary" onClick={() => setEditing((v) => !v)}>
+              {editing ? "Close editor" : grid ? "Edit profile" : "Claim profile"}
+            </button>
+          </div>
         </div>
         {editing ? (
           <>
@@ -131,6 +139,14 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
         ) : null}
       </div>
 
+      {verifyOpen ? (
+        <ProfileVerifyModal
+          subject={subject}
+          isDraft={source === "draft"}
+          onClose={() => setVerifyOpen(false)}
+        />
+      ) : null}
+
       {grid ? (
         <SpritzProfile grid={grid} subject={subject} showOwnerHints={isOwner || editing} />
       ) : (
@@ -142,9 +158,14 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
               Connect your wallet and claim it — your page will live at{" "}
               {bioUrl ? <a href={bioUrl}>{bioUrl.replace("https://", "")}</a> : "your gridz.bio subdomain"}.
             </p>
-            <button type="button" className="site-btn site-btn--primary" onClick={() => setEditing(true)}>
-              Claim this profile
-            </button>
+            <div className="profile-empty__actions">
+              <button type="button" className="site-btn" onClick={() => setVerifyOpen(true)}>
+                Query &amp; verify
+              </button>
+              <button type="button" className="site-btn site-btn--primary" onClick={() => setEditing(true)}>
+                Claim this profile
+              </button>
+            </div>
             <p style={{ marginTop: 16, fontSize: 14 }}>
               Or start from <a href="/claim">gridz.bio/claim</a> for the full walkthrough.
             </p>
