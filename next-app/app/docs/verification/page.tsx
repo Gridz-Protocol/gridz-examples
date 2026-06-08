@@ -15,9 +15,7 @@ export default function VerificationPage() {
         EAS attestations and shows a green check when verified.
       </p>
       <p>
-        The website loads verification from <code>GET /api/verify/…</code> (browsers cannot call Base RPC directly due to CORS). Published profiles also show per-field badges on hero fields, social links, and widget cards.
-        Hover a badge for attestation format and status. When all cells pass, the profile header shows{" "}
-        <strong>✓ Verified</strong>.
+        The website loads verification from <code>GET /api/verify/…</code> (browsers cannot call Base RPC directly due to CORS). When all on-chain cells pass verification, the profile header shows a single <strong>✓ Verified</strong> badge. Use the toolbar <strong>Verify profile</strong> button for a per-field breakdown.
       </p>
       <p>
         If you see a <strong>Draft</strong> badge, verification uses the published on-chain profile,

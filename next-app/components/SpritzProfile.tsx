@@ -1,17 +1,15 @@
 "use client";
 
-import type { Grid, VerifyProof } from "@gridz/core";
+import type { Grid } from "@gridz/core";
 import { themeToCssVars } from "@gridz/react";
-import { useVerification, type BadgeStatus } from "@gridz/react";
+import { useVerification } from "@gridz/react";
 import { headerFromGrid, socialCells, widgetCells } from "../lib/profileLayout";
 import { gridHasEasCells, useServerVerification } from "../lib/useServerVerification";
-import { verifyStatusMeta } from "../lib/verificationUi";
 import {
   resolveSpritzWidget,
   spritzSpan,
 } from "./spritz/SpritzWidgets";
 import { ProfileAvatar } from "./ProfileAvatar";
-import { FieldVerifyBadge } from "./FieldVerifyBadge";
 import { demoAvatarForDisplay } from "../lib/demoProfile";
 import { normalizeUrl } from "../lib/normalizeUrl";
 import "./spritz-profile.css";
@@ -24,8 +22,6 @@ export interface SpritzProfileProps {
   /** When false (e.g. local draft), hide on-chain verify badges. */
   showVerification?: boolean;
 }
-
-const HERO_VERIFY_KEYS = ["alias", "description", "avatar", "url", "header"] as const;
 
 export function SpritzProfile({ grid, subject, showOwnerHints = false, showVerification = true }: SpritzProfileProps) {
   const onChain = showVerification && gridHasEasCells(grid);
@@ -44,15 +40,6 @@ export function SpritzProfile({ grid, subject, showOwnerHints = false, showVerif
   const profileOk = verification.ok && !verification.loading;
 
   const messageMe = grid.cells.find((c) => c.key === "gridz.message_me");
-  const heroFields = grid.cells.filter(
-    (c) => c.is_visible && (HERO_VERIFY_KEYS as readonly string[]).includes(c.key),
-  );
-
-  const cellResult = (cellId: string) =>
-    verification.report?.cells.find((c) => c.id === cellId)?.result;
-
-  const badgeStatus = (cellId: string): BadgeStatus =>
-    verification.loading ? "loading" : (verification.cells[cellId] ?? "unsupported");
 
   return (
     <div className="spritz-profile" style={themeToCssVars(grid.theme)}>
@@ -64,43 +51,14 @@ export function SpritzProfile({ grid, subject, showOwnerHints = false, showVerif
       ) : null}
 
       <section className="spritz-hero">
-        <div className="spritz-hero__avatar-wrap">
-          <ProfileAvatar src={avatar} fallbackLetter={header.alias} />
-          {heroFields.some((c) => c.key === "avatar") ? (
-            <FieldVerifyBadge
-              compact
-              status={badgeStatus("avatar")}
-              proof={cellResult("avatar")?.proof}
-              reason={cellResult("avatar")?.reason}
-            />
-          ) : null}
-        </div>
+        <ProfileAvatar src={avatar} fallbackLetter={header.alias} />
         <div className="spritz-hero__body">
           <div className="spritz-hero__title-row">
             <h1>{header.alias}</h1>
             {profileOk ? <span className="spritz-verified">✓ Verified</span> : null}
-            {verification.loading ? <span className="spritz-verified spritz-verified--pending">…</span> : null}
           </div>
           <p className="spritz-hero__handle">{header.handle}</p>
           {header.description ? <p className="spritz-hero__bio">{header.description}</p> : null}
-          {heroFields.length > 0 ? (
-            <ul className="spritz-hero__verify-fields" aria-label="Verified profile fields">
-              {heroFields.map((cell) => {
-                const result = cellResult(cell.id);
-                return (
-                  <li key={cell.id}>
-                    <span className="spritz-hero__verify-key">{labelForKey(cell.key)}</span>
-                    <FieldVerifyBadge
-                      compact
-                      status={badgeStatus(cell.id)}
-                      proof={result?.proof}
-                      reason={result?.reason}
-                    />
-                  </li>
-                );
-              })}
-            </ul>
-          ) : null}
           {socials.length > 0 || widgets.length > 0 ? (
             <p className="spritz-hero__meta">
               {socials.length > 0
@@ -125,15 +83,8 @@ export function SpritzProfile({ grid, subject, showOwnerHints = false, showVerif
             ) : null}
             {socials.slice(0, 3).map((cell) => {
               const W = resolveSpritzWidget(cell);
-              const result = cellResult(cell.id);
               return (
                 <div key={cell.id} className="spritz-hero__social">
-                  <FieldVerifyBadge
-                    compact
-                    status={badgeStatus(cell.id)}
-                    proof={result?.proof}
-                    reason={result?.reason}
-                  />
                   <W cell={cell} subject={subject} />
                 </div>
               );
@@ -154,8 +105,6 @@ export function SpritzProfile({ grid, subject, showOwnerHints = false, showVerif
         ) : (
           widgets.map((cell) => {
             const W = resolveSpritzWidget(cell);
-            const result = cellResult(cell.id);
-            const badge = cellBadge(badgeStatus(cell.id), result?.proof, result?.reason);
             return (
               <article
                 key={cell.id}
@@ -165,12 +114,6 @@ export function SpritzProfile({ grid, subject, showOwnerHints = false, showVerif
               >
                 <header className="spritz-card__head">
                   <span className="spritz-card__label">{labelForKey(cell.key)}</span>
-                  <span
-                    className={`spritz-card__badge spritz-card__badge--${badge.tone}`}
-                    title={badge.title}
-                  >
-                    {badge.glyph}
-                  </span>
                 </header>
                 <W cell={cell} subject={subject} />
               </article>
@@ -191,13 +134,4 @@ export function SpritzProfile({ grid, subject, showOwnerHints = false, showVerif
 function labelForKey(key: string): string {
   if (key.startsWith("gridz.")) return key.replace("gridz.", "").replace(/_/g, " ");
   return key;
-}
-
-function cellBadge(
-  status: BadgeStatus,
-  proof?: VerifyProof,
-  reason?: string,
-): { glyph: string; tone: string; title: string } {
-  const meta = verifyStatusMeta(status, proof, reason);
-  return { glyph: meta.glyph, tone: meta.tone === "warn" ? "onchain" : meta.tone, title: meta.title };
 }
