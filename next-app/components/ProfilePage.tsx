@@ -56,15 +56,23 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
     }
   }, [chainGrid, subject]);
 
+  const onPreview = useCallback((g: Grid) => {
+    setGrid(g);
+    if (source !== "none") setSource("draft");
+  }, [source]);
+
   const onSaved = useCallback(
     (g: Grid, src: "draft" | "chain") => {
       publishedRef.current = src === "chain";
       setGrid(g);
       setSource(src);
-      setEditing(false);
-      if (src === "chain") router.refresh();
+      setDraftBundle(loadDraftBundle(subject));
+      if (src === "chain") {
+        setEditing(false);
+        router.refresh();
+      }
     },
-    [router],
+    [router, subject],
   );
 
   const demo = isDemoProfile(subject);
@@ -116,6 +124,7 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
               signedBaseline={draftBundle?.signedBaseline ?? null}
               initialFields={draftBundle?.fields ?? null}
               onSaved={onSaved}
+              onPreview={onPreview}
               isClaim={source === "none"}
             />
           </>

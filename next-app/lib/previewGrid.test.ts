@@ -9,3 +9,13 @@ describe("previewGrid", () => {
     expect(merged?.cells.find((c) => c.key === "alias")?.value).toBe("Draft");
   });
 });
+
+  it("shows placeholder stats when enabled in draft preview", () => {
+    const merged = mergeFieldPreview(null, {
+      ...DEFAULT_PROFILE_FIELDS,
+      alias: "Kevin",
+      statsEnabled: true,
+      stats: [{ label: "", value: "" }],
+    }, "kevin.gridz.eth");
+    expect(merged?.cells.some((c) => c.key === "gridz.stats")).toBe(true);
+  });

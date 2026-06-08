@@ -22,7 +22,7 @@ export function previewGridFromFields(
   ensName: string,
   chainGrid: Grid | null,
 ): Grid | null {
-  const drafts = profileCellsFromFields(fields);
+  const drafts = profileCellsFromFields(fields, { placeholders: true });
   if (drafts.length === 0) return chainGrid;
 
   const now = new Date().toISOString();
@@ -40,7 +40,7 @@ export function previewGridFromFields(
   return {
     schema_version: SCHEMA_VERSION,
     subject: {
-      type: "human",
+      type: fields.tokensEnabled ? "organization" : "human",
       did: chainGrid?.subject.did ?? `did:ens:${ensName}`,
       ens: ensName,
       display_name: fields.alias.trim() || ensName.split(".")[0],
@@ -60,7 +60,7 @@ export function previewGridFromFields(
   };
 }
 
-/** Overlay unsigned field values on chain cells for draft preview. */
+/** Draft preview: fields drive the cell set; reuse on-chain attestations where keys match. */
 export function mergeFieldPreview(
   chain: Grid | null,
   fields: ProfileEditorState,
@@ -70,20 +70,16 @@ export function mergeFieldPreview(
   if (!preview) return null;
   if (!chain) return preview;
 
-  const byKey = new Map<string, Cell>();
-  for (const cell of chain.cells) byKey.set(cell.key, cell);
-  for (const cell of preview.cells) {
-    const existing = byKey.get(cell.key);
-    byKey.set(cell.key, {
-      ...cell,
-      attestation: existing?.attestation ?? cell.attestation,
-    });
-  }
+  const chainByKey = new Map(chain.cells.map((c) => [c.key, c]));
+  const cells = preview.cells.map((cell) => ({
+    ...cell,
+    attestation: chainByKey.get(cell.key)?.attestation ?? cell.attestation,
+  }));
 
-  const cells = [...byKey.values()].sort((a, b) => a.position.y - b.position.y || a.position.x - b.position.x);
   return {
     ...chain,
     subject: preview.subject,
     cells,
+    root_attestation: chain.root_attestation,
   };
 }

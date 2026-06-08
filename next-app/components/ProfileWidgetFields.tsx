@@ -80,7 +80,8 @@ export function ProfileWidgetFields({ fields, onChange, disabled }: ProfileWidge
 
       <h4 className="profile-widgets__title">Add widgets</h4>
       <p className="profile-widgets__hint">
-        Tap to add Spritz-style cards to your bento grid — stats, polls, countdowns, and more.
+        Tap to add Spritz-style cards — the profile preview below updates live. Fill in each widget&apos;s
+        fields, then <strong>Sign &amp; publish</strong> to go on-chain.
       </p>
       <div className="widget-picker">
         {WIDGET_CATALOG.map((w) => {

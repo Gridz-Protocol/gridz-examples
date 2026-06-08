@@ -21,6 +21,8 @@ export interface ProfileEditorProps {
   signedBaseline?: Grid | null;
   initialFields?: ProfileEditorState | null;
   onSaved: (grid: Grid, source: "draft" | "chain") => void;
+  /** Live preview while editing (draft fields overlaid on chain baseline). */
+  onPreview?: (grid: Grid) => void;
   isClaim?: boolean;
 }
 
@@ -37,6 +39,7 @@ export function ProfileEditor({
   signedBaseline = null,
   initialFields = null,
   onSaved,
+  onPreview,
   isClaim = false,
 }: ProfileEditorProps) {
   const {
@@ -67,6 +70,12 @@ export function ProfileEditor({
     if (busy !== null) return;
     setFields(initialFields ?? fieldsFromGrid(initial));
   }, [initial, initialFields, busy]);
+
+  useEffect(() => {
+    if (!onPreview) return;
+    const preview = mergeFieldPreview(chainBaseline, fields, ensName);
+    if (preview) onPreview(preview);
+  }, [chainBaseline, ensName, fields, onPreview]);
 
   const resolver = (process.env.NEXT_PUBLIC_GRIDZ_RESOLVER ?? "") as Hex;
   const signingBaseline = signedBaseline ?? chainBaseline;

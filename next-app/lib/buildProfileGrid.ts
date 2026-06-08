@@ -16,7 +16,16 @@ function pushSocial(cells: CellDraft[], y: number, id: string, key: string, valu
   return y + 1;
 }
 
-export function profileCellsFromFields(fields: ProfileEditorState): CellDraft[] {
+export interface ProfileCellsOptions {
+  /** Include placeholder widget shells for draft preview (not used when publishing). */
+  placeholders?: boolean;
+}
+
+export function profileCellsFromFields(
+  fields: ProfileEditorState,
+  opts?: ProfileCellsOptions,
+): CellDraft[] {
+  const placeholders = opts?.placeholders ?? false;
   const cells: CellDraft[] = [];
   let y = 0;
 
@@ -96,12 +105,14 @@ export function profileCellsFromFields(fields: ProfileEditorState): CellDraft[] 
     y += 1;
   }
 
-  if (fields.currentlyEnabled && fields.currentlyTitle.trim()) {
+  if (fields.currentlyEnabled) {
+    const currentlyTitle = fields.currentlyTitle.trim() || (placeholders ? "What you're working on" : "");
+    if (currentlyTitle) {
     cells.push({
       id: "gridz.currently",
       key: "gridz.currently",
       value: {
-        title: fields.currentlyTitle.trim(),
+        title: currentlyTitle,
         subtitle: fields.currentlySubtitle.trim() || undefined,
         emoji: fields.currentlyEmoji.trim() || "🚀",
       },
@@ -110,12 +121,16 @@ export function profileCellsFromFields(fields: ProfileEditorState): CellDraft[] 
       size: "2x1",
     });
     y += 1;
+    }
   }
 
   if (fields.statsEnabled) {
-    const rows = fields.stats
+    let rows = fields.stats
       .filter((r) => r.label.trim() && r.value.trim())
       .map((r) => ({ label: r.label.trim(), value: r.value.trim() }));
+    if (rows.length === 0 && placeholders) {
+      rows = [{ label: "Stat", value: "—" }];
+    }
     if (rows.length) {
       cells.push({
         id: "gridz.stats",
@@ -129,8 +144,10 @@ export function profileCellsFromFields(fields: ProfileEditorState): CellDraft[] 
     }
   }
 
-  if (fields.countdownEnabled && fields.countdownTarget.trim()) {
-    const target = new Date(fields.countdownTarget).toISOString();
+  if (fields.countdownEnabled) {
+    const countdownTarget = fields.countdownTarget.trim() || (placeholders ? "2030-01-01T12:00" : "");
+    if (countdownTarget) {
+    const target = new Date(countdownTarget).toISOString();
     cells.push({
       id: "gridz.countdown",
       key: "gridz.countdown",
@@ -140,15 +157,20 @@ export function profileCellsFromFields(fields: ProfileEditorState): CellDraft[] 
       size: "2x2",
     });
     y += 2;
+    }
   }
 
-  if (fields.pollEnabled && fields.pollQuestion.trim()) {
-    const options = fields.pollOptions.map((o) => o.trim()).filter(Boolean);
-    if (options.length >= 2) {
+  if (fields.pollEnabled) {
+    let pollQuestion = fields.pollQuestion.trim() || (placeholders ? "Your poll question" : "");
+    let pollOptions = fields.pollOptions.map((o) => o.trim()).filter(Boolean);
+    if (placeholders && pollOptions.length < 2) {
+      pollOptions = pollOptions.length === 1 ? [pollOptions[0]!, "Option 2"] : ["Option 1", "Option 2"];
+    }
+    if (pollQuestion && pollOptions.length >= 2) {
       cells.push({
         id: "gridz.poll",
         key: "gridz.poll",
-        value: { q: fields.pollQuestion.trim(), options, votes: options.map(() => 0) },
+        value: { q: pollQuestion, options: pollOptions, votes: pollOptions.map(() => 0) },
         widget_type: "gridz.poll",
         position: { x: 0, y, w: 2, h: 2 },
         size: "2x2",
@@ -169,22 +191,28 @@ export function profileCellsFromFields(fields: ProfileEditorState): CellDraft[] 
     y += 1;
   }
 
-  if (fields.textEnabled && fields.textContent.trim()) {
+  if (fields.textEnabled) {
+    const textContent = fields.textContent.trim() || (placeholders ? "Your quote or announcement" : "");
+    if (textContent) {
     cells.push({
       id: "gridz.text",
       key: "gridz.text",
-      value: fields.textContent.trim(),
+      value: textContent,
       widget_type: "gridz.text",
       position: { x: 0, y, w: 2, h: 1 },
       size: "2x1",
     });
     y += 1;
+    }
   }
 
   if (fields.guestbookEnabled) {
-    const entries = fields.guestbookEntries
+    let entries = fields.guestbookEntries
       .filter((e) => e.text.trim())
       .map((e) => ({ text: e.text.trim(), author: e.author.trim() || undefined }));
+    if (entries.length === 0 && placeholders) {
+      entries = [{ text: "Add guestbook entries in the editor", author: undefined }];
+    }
     if (entries.length) {
       cells.push({
         id: "gridz.guestbook",
@@ -208,6 +236,9 @@ export function profileCellsFromFields(fields: ProfileEditorState): CellDraft[] 
         ...(t.symbol.trim() ? { symbol: t.symbol.trim() } : {}),
         ...(t.name.trim() ? { name: t.name.trim() } : {}),
       }));
+    if (tokens.length === 0 && placeholders) {
+      tokens.push({ chainId: 1, address: "0x0000000000000000000000000000000000000000", symbol: "TOKEN", name: "Add token in editor" });
+    }
     if (tokens.length) {
       cells.push({
         id: "gridz.tokens",
@@ -221,15 +252,18 @@ export function profileCellsFromFields(fields: ProfileEditorState): CellDraft[] 
     }
   }
 
-  if (fields.linkEnabled && fields.linkUrl.trim()) {
+  if (fields.linkEnabled) {
+    const linkUrl = fields.linkUrl.trim() || (placeholders ? "https://example.com" : "");
+    if (linkUrl) {
     cells.push({
       id: "gridz.social_link",
       key: "gridz.social_link",
-      value: { label: fields.linkLabel.trim() || "Link", url: normalizeUrl(fields.linkUrl) },
+      value: { label: fields.linkLabel.trim() || "Link", url: normalizeUrl(linkUrl) },
       widget_type: "gridz.social_link",
       position: { x: 0, y, w: 1, h: 1 },
       size: "1x1",
     });
+    }
   }
 
   if (cells.length > 0) {
