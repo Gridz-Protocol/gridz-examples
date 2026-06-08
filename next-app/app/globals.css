@@ -809,6 +809,39 @@ a:hover {
   overflow-x: auto;
 }
 
+.spec-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.spec-subnav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--site-border);
+}
+
+.spec-subnav a {
+  color: var(--site-muted);
+  font-size: 13px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  text-decoration: none;
+}
+
+.spec-subnav a:hover,
+.spec-subnav a.active {
+  color: var(--site-text);
+  background: var(--site-accent-soft);
+  text-decoration: none;
+}
+
+.spec-body h1 {
+  margin-top: 0;
+}
+
 @media (max-width: 768px) {
   .site-nav__links {
     display: none;

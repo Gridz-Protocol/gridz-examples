@@ -14,6 +14,7 @@ export const FOR_AI_LINKS = {
   toolkit: `${ORIGIN}/docs/toolkit`,
   cli: `${ORIGIN}/docs/cli`,
   concepts: `${ORIGIN}/docs/concepts`,
+  spec: `${ORIGIN}/docs/spec`,
   verification: `${ORIGIN}/docs/verification`,
   claim: `${ORIGIN}/claim`,
   find: `${ORIGIN}/find`,

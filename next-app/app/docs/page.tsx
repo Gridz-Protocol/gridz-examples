@@ -29,6 +29,10 @@ export default function DocsHome() {
           see.
         </li>
         <li>
+          <a href="/docs/spec">Specification</a> — in-depth Grid model, keys, canonicalization,
+          attestations, and Base deployments.
+        </li>
+        <li>
           <a href="/find">Find a profile</a> — search by alias with live on-chain and draft
           suggestions.
         </li>

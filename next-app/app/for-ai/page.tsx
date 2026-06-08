@@ -24,6 +24,7 @@ const QUICK_LINKS = [
   { href: "/docs/toolkit", label: "Toolkit", desc: "@gridz/core, mcp, sdk, sinks, oneclaw" },
   { href: "/docs/cli", label: "CLI", desc: "gridz init, build, verify, publish" },
   { href: "/docs/concepts", label: "Concepts", desc: "Cells, attestations, sinks, verification" },
+  { href: "/docs/spec", label: "Specification", desc: "Normative Grid model, keys, hashing, EIP-712, Base" },
   { href: "/docs/verification", label: "Verification", desc: "How to trust a Grid offline" },
   { href: "/docs/using-gridz", label: "Using gridz.bio", desc: "URLs, drafts, publish flow" },
 ];

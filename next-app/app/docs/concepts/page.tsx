@@ -4,7 +4,8 @@ export default function ConceptsPage() {
       <h1>Concepts</h1>
       <p>
         A few terms that show up across gridz.bio, the API, and the open-source packages. No
-        blockchain expertise required.
+        blockchain expertise required. For the full normative reference — schemas, hashing, EIP-712,
+        EAS, and on-chain layout — see the <a href="/docs/spec">Specification</a>.
       </p>
 
       <h2>Grid</h2>

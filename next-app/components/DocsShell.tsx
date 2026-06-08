@@ -8,6 +8,7 @@ const NAV = [
   { href: "/docs/claim", label: "Claim your profile" },
   { href: "/docs/using-gridz", label: "Using gridz.bio" },
   { href: "/docs/concepts", label: "Concepts" },
+  { href: "/docs/spec", label: "Spec" },
   { href: "/docs/api", label: "API & integrations" },
   { href: "/docs/toolkit", label: "Toolkit" },
   { href: "/docs/cli", label: "CLI" },
@@ -24,7 +25,11 @@ export function DocsShell({ children }: { children: React.ReactNode }) {
           <Link
             key={item.href}
             href={item.href}
-            className={pathname === item.href ? "active" : undefined}
+            className={
+              pathname === item.href || (item.href === "/docs/spec" && pathname.startsWith("/docs/spec"))
+                ? "active"
+                : undefined
+            }
           >
             {item.label}
           </Link>
