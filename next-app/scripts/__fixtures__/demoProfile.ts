@@ -1,44 +1,46 @@
 import type { ProfileEditorState } from "../../lib/profileFields";
 
 /**
- * Fictional showcase profile (Spritz-style widget gallery). Lives at demo.gridz.eth.
- * Data is in __fixtures__ — exempt from check-no-mock-data.
+ * Spritz-style showcase profile (elonmusk-inspired widget gallery). Lives at demo.gridz.eth.
+ * Parody / demo only — lives in __fixtures__ (exempt from check-no-mock-data).
  */
 export const DEMO_ENS_SUBJECT = "demo.gridz.eth";
 
 export const DEMO_PROFILE_FIELDS: ProfileEditorState = {
-  alias: "Nova Chen",
-  description: "CEO of Stellar Dynamics, OrbitLink & NeuraSys. Making life multiplanetary 🚀",
-  url: "https://gridz.bio/for-ai",
-  avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=gridz-demo-nova",
-  twitter: "novachen",
-  github: "gridz-protocol",
-  bsky: "nova.gridz.bio",
-  discord: "nova_gridz",
-  telegram: "gridzdemo",
+  alias: "Elon Musk",
+  description: "CEO of Tesla, SpaceX, X & xAI. Making life multiplanetary 🚀",
+  url: "https://x.com/elonmusk",
+  avatar:
+    "https://upload.wikimedia.org/wikipedia/commons/3/34/Elon_Musk_Royal_Society_%28crop1%29.jpg",
+  twitter: "elonmusk",
+  github: "elonmusk",
+  bsky: "elonmusk.bsky.social",
+  discord: "elonmusk",
+  telegram: "elonmusk",
   statsEnabled: true,
   stats: [
     { label: "Companies", value: "6" },
-    { label: "Launches", value: "287" },
-    { label: "Posts", value: "42K" },
+    { label: "Rockets Landed", value: "287" },
+    { label: "X Posts", value: "42K" },
+    { label: "Starlink Sats", value: "6.2K" },
   ],
   pollEnabled: true,
-  pollQuestion: "Which venture excites you most?",
-  pollOptions: ["Stellar Dynamics", "OrbitLink", "NeuraSys", "DeepField AI"],
+  pollQuestion: "Which company excites you most?",
+  pollOptions: ["SpaceX", "Tesla", "Neuralink", "xAI"],
   linkEnabled: true,
-  linkLabel: "Gridz for AI",
-  linkUrl: "https://gridz.bio/for-ai",
+  linkLabel: "xAI — Grok",
+  linkUrl: "https://x.ai",
   messageMeEnabled: true,
-  messageMeUrl: "https://gridz.bio/claim",
+  messageMeUrl: "https://x.com/elonmusk",
   availabilityEnabled: true,
   availabilityStatus: "busy",
-  availabilityMessage: "In a Starship review",
+  availabilityMessage: "Reviewing Starship Mk3",
   currentlyEnabled: true,
-  currentlyTitle: "Starship Mk3",
+  currentlyTitle: "Starship",
   currentlySubtitle: "Making life multiplanetary",
   currentlyEmoji: "🚀",
   countdownEnabled: true,
-  countdownLabel: "Mars mission",
+  countdownLabel: "Mars Mission",
   countdownTarget: "2030-01-01T12:00",
   clockEnabled: true,
   clockTimezone: "America/Chicago",
@@ -48,7 +50,9 @@ export const DEMO_PROFILE_FIELDS: ProfileEditorState = {
   guestbookEnabled: true,
   guestbookEntries: [
     { text: "Take us to Mars! 🚀", author: "SpaceEnthusiast" },
-    { text: "Autopilot is incredible — thank you!", author: "Driver42" },
-    { text: "NeuraSys is the future of safe AI", author: "AIResearcher" },
+    { text: "FSD is amazing! Thank you!", author: "TeslaOwner" },
+    { text: "xAI is the future of AI safety", author: "AIResearcher" },
+    { text: "Starship landing was incredible 🔥", author: "StarbaseFan" },
+    { text: "Grok beats every other assistant", author: "PowerUser" },
   ],
 };

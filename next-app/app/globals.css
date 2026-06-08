@@ -1226,23 +1226,26 @@ a:hover {
 .demo-banner {
   max-width: 960px;
   margin: 0 auto 16px;
-  padding: 12px 16px;
-  border-radius: 12px;
-  border: 1px solid rgba(124, 92, 255, 0.45);
-  background: rgba(124, 92, 255, 0.08);
+  padding: 14px 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(124, 92, 255, 0.55);
+  background: linear-gradient(135deg, rgba(124, 92, 255, 0.14), rgba(56, 189, 248, 0.08));
+  box-shadow: 0 0 24px rgba(124, 92, 255, 0.12);
 }
 
 .demo-banner span {
-  font-weight: 600;
+  font-weight: 700;
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
+  font-size: 15px;
+  letter-spacing: 0.01em;
 }
 
 .demo-banner p {
   margin: 0;
   font-size: 13px;
   color: var(--site-muted);
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 /* Publish progress (ENS-style) */

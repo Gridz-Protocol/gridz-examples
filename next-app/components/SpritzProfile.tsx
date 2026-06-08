@@ -14,9 +14,11 @@ import "./spritz-profile.css";
 export interface SpritzProfileProps {
   grid: Grid;
   subject: string;
+  /** Show editor hints (e.g. empty widget state) — only for the profile owner. */
+  showOwnerHints?: boolean;
 }
 
-export function SpritzProfile({ grid, subject }: SpritzProfileProps) {
+export function SpritzProfile({ grid, subject, showOwnerHints = false }: SpritzProfileProps) {
   const verification = useVerification(grid);
   const header = headerFromGrid(grid, subject);
   const widgets = widgetCells(grid);
@@ -84,6 +86,7 @@ export function SpritzProfile({ grid, subject }: SpritzProfileProps) {
         </div>
       </section>
 
+      {widgets.length > 0 || showOwnerHints ? (
       <section className="spritz-bento">
         {widgets.length === 0 ? (
           <div className="spritz-bento__empty">
@@ -118,6 +121,7 @@ export function SpritzProfile({ grid, subject }: SpritzProfileProps) {
           })
         )}
       </section>
+      ) : null}
 
       <footer className="spritz-footer">
         <span>Gridz</span>

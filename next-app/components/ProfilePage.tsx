@@ -11,6 +11,8 @@ import { mergeGrids } from "../lib/mergeGrids";
 import { rememberProfile } from "../lib/recentProfiles";
 import { bioUrlForEns } from "../lib/subjectFromHost";
 import { isDemoProfile } from "../lib/demoProfile";
+import { isProfileOwner } from "../lib/isProfileOwner";
+import { useWallet } from "../lib/wallet";
 
 export interface ProfilePageProps {
   subject: string;
@@ -20,6 +22,7 @@ export interface ProfilePageProps {
 
 export function ProfilePage({ subject, chainGrid, startClaiming = false }: ProfilePageProps) {
   const router = useRouter();
+  const { address, targetChainId } = useWallet();
   const publishedRef = useRef(false);
   const [editing, setEditing] = useState(startClaiming);
   const [grid, setGrid] = useState<Grid | null>(chainGrid);
@@ -62,15 +65,17 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
   );
 
   const demo = isDemoProfile(subject);
+  const isOwner = grid ? isProfileOwner(grid, address, targetChainId) : false;
 
   return (
     <>
       {demo ? (
         <div className="demo-banner" role="note">
-          <span>🚀 Demo profile</span>
+          <span>🚀 Live widget showcase</span>
           <p>
-            Fictional showcase (Nova Chen) — signed with <code>GRIDZ_SIGNER_KEY</code> and published
-            like any real profile. Run <code>pnpm demo:publish</code> to refresh.
+            Spritz-style demo — stats, poll, countdown, guestbook, and more. Signed with{" "}
+            <code>GRIDZ_SIGNER_KEY</code> and published on-chain like any real profile. Run{" "}
+            <code>pnpm demo:publish</code> to refresh.
           </p>
         </div>
       ) : null}
@@ -107,7 +112,7 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
       </div>
 
       {grid ? (
-        <SpritzProfile grid={grid} subject={subject} />
+        <SpritzProfile grid={grid} subject={subject} showOwnerHints={isOwner || editing} />
       ) : (
         <div className="profile-layout">
           <div className="profile-empty">

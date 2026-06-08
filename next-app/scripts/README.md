@@ -39,4 +39,4 @@ Checks the profile API returns alias, url, stats, poll, and `gridz.keys`.
 
 ### Data
 
-Fixture: `scripts/__fixtures__/demoProfile.ts` (fictional **Nova Chen** — not a real person).
+Fixture: `scripts/__fixtures__/demoProfile.ts` (full Spritz-style widget gallery — see fixture for persona data).

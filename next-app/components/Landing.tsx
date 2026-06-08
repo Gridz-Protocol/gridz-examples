@@ -31,8 +31,8 @@ export function Landing() {
           <button type="button" className="site-btn site-btn--ghost" onClick={() => router.push("/find")}>
             Find a profile
           </button>
-          <a className="site-btn site-btn--ghost" href={demoProfileUrl()}>
-            Demo profile
+          <a className="site-btn site-btn--ghost" href={demoProfileUrl()} aria-label="View live widget showcase demo">
+            Explore widget gallery →
           </a>
         </div>
       </section>
