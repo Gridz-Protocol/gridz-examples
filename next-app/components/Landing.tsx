@@ -42,15 +42,25 @@ export function Landing() {
             className="site-input"
             value={alias}
             onChange={(e) => setAlias(e.target.value)}
-            placeholder={`kevin.${ENS_BASE}`}
-            aria-label="Profile name"
+            placeholder={`kevin`}
+            aria-label="Profile alias"
           />
-          <button type="submit" className="site-btn site-btn--primary">
-            View profile
+          <button type="submit" className="site-btn site-btn--ghost">
+            View
+          </button>
+          <button
+            type="button"
+            className="site-btn site-btn--primary"
+            onClick={() => router.push("/claim")}
+          >
+            Claim yours
           </button>
         </form>
         <p style={{ color: "var(--site-muted)", fontSize: 14 }}>
-          Try <button type="button" className="site-btn site-btn--ghost" onClick={() => goToProfile("bot")}>bot.{ENS_BASE}</button>
+          Example:{" "}
+          <button type="button" className="site-btn site-btn--ghost" onClick={() => goToProfile("bot")}>
+            bot.{SITE_DOMAIN}
+          </button>
         </p>
       </section>
       <section className="landing__features">

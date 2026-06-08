@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Grid } from "@gridz/core";
+import { ClaimSteps } from "./ClaimSteps";
 import { ProfileEditor } from "./ProfileEditor";
 import { SpritzProfile } from "./SpritzProfile";
 import { loadDraft } from "../lib/drafts";
@@ -10,10 +11,11 @@ import { bioUrlForEns } from "../lib/subjectFromHost";
 export interface ProfilePageProps {
   subject: string;
   chainGrid: Grid | null;
+  startClaiming?: boolean;
 }
 
-export function ProfilePage({ subject, chainGrid }: ProfilePageProps) {
-  const [editing, setEditing] = useState(false);
+export function ProfilePage({ subject, chainGrid, startClaiming = false }: ProfilePageProps) {
+  const [editing, setEditing] = useState(startClaiming);
   const [grid, setGrid] = useState<Grid | null>(chainGrid);
   const [source, setSource] = useState<"chain" | "draft" | "none">(chainGrid ? "chain" : "none");
 
@@ -68,7 +70,12 @@ export function ProfilePage({ subject, chainGrid }: ProfilePageProps) {
             {editing ? "Close editor" : grid ? "Edit profile" : "Claim profile"}
           </button>
         </div>
-        {editing ? <ProfileEditor ensName={subject} initial={grid} onSaved={onSaved} /> : null}
+        {editing ? (
+          <>
+            {source === "none" ? <ClaimSteps ensName={subject} /> : null}
+            <ProfileEditor ensName={subject} initial={grid} onSaved={onSaved} isClaim={source === "none"} />
+          </>
+        ) : null}
       </div>
 
       {grid ? (
@@ -85,6 +92,9 @@ export function ProfilePage({ subject, chainGrid }: ProfilePageProps) {
             <button type="button" className="site-btn site-btn--primary" onClick={() => setEditing(true)}>
               Claim this profile
             </button>
+            <p style={{ marginTop: 16, fontSize: 14 }}>
+              Or start from <a href="/claim">gridz.bio/claim</a> for the full walkthrough.
+            </p>
           </div>
         </div>
       )}

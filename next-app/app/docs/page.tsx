@@ -26,8 +26,9 @@ export default function DocsHome() {
         </li>
       </ul>
       <p>
-        Continue to <a href="/docs/getting-started">Getting started</a> or browse the full reference at{" "}
-        <a href="https://gridz.dev">gridz.dev</a>.
+        New here? <a href="/docs/claim">Claim your profile</a> or read{" "}
+        <a href="/docs/getting-started">Getting started</a>. Everything lives on{" "}
+        <a href="https://gridz.bio">gridz.bio</a>.
       </p>
     </>
   );

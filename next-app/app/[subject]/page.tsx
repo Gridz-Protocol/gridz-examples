@@ -8,9 +8,16 @@ export async function generateMetadata({ params }: { params: Promise<{ subject: 
   return { title: alias };
 }
 
-export default async function SubjectPage({ params }: { params: Promise<{ subject: string }> }) {
+export default async function SubjectPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ subject: string }>;
+  searchParams: Promise<{ claim?: string }>;
+}) {
   const { subject } = await params;
+  const { claim } = await searchParams;
   const decoded = decodeURIComponent(subject);
   const chainGrid = await loadGrid(decoded);
-  return <ProfilePage subject={decoded} chainGrid={chainGrid} />;
+  return <ProfilePage subject={decoded} chainGrid={chainGrid} startClaiming={claim === "1"} />;
 }

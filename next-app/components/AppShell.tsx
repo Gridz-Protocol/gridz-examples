@@ -19,12 +19,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <Link href="/" className={`site-nav__link${pathname === "/" ? " site-nav__link--active" : ""}`}>
             Home
           </Link>
+          <Link
+            href="/claim"
+            className={`site-nav__link${pathname === "/claim" ? " site-nav__link--active" : ""}`}
+          >
+            Claim
+          </Link>
           <Link href="/docs" className={`site-nav__link${isDocs ? " site-nav__link--active" : ""}`}>
             Docs
           </Link>
-          <a href="https://gridz.dev" className="site-nav__link" target="_blank" rel="noreferrer">
-            gridz.dev ↗
-          </a>
         </nav>
         <div className="site-nav__actions">
           <WalletButton />

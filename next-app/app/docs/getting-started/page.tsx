@@ -4,9 +4,9 @@ export default function GettingStartedPage() {
       <h1>Getting started</h1>
       <h2>1. Claim a subname</h2>
       <p>
-        Entities register as <code>alias.gridz.eth</code> and get a pretty URL at{" "}
-        <code>alias.gridz.bio</code>. Visit your subdomain, connect a wallet, and use the in-browser
-        editor.
+        Go to <a href="/claim">gridz.bio/claim</a>, pick an alias, connect your wallet, and publish.
+        You get <code>alias.gridz.eth</code> on-chain and <code>alias.gridz.bio</code> on the web.
+        See the <a href="/docs/claim">claiming guide</a> for details.
       </p>
       <h2>2. Bootstrap (operators)</h2>
       <pre>

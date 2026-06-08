@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 const NAV = [
   { href: "/docs", label: "Introduction" },
+  { href: "/docs/claim", label: "Claim your profile" },
   { href: "/docs/getting-started", label: "Getting started" },
   { href: "/docs/concepts", label: "Concepts" },
   { href: "/docs/verification", label: "Verification" },
@@ -25,9 +26,7 @@ export function DocsShell({ children }: { children: React.ReactNode }) {
             {item.label}
           </Link>
         ))}
-        <a href="https://gridz.dev" target="_blank" rel="noreferrer">
-          Full docs on gridz.dev ↗
-        </a>
+        <Link href="/claim">Claim at gridz.bio/claim</Link>
       </nav>
       <article className="docs-content">{children}</article>
     </div>

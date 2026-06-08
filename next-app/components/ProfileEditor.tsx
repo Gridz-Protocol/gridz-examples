@@ -11,6 +11,7 @@ export interface ProfileEditorProps {
   ensName: string;
   initial?: Grid | null;
   onSaved: (grid: Grid, source: "draft" | "chain") => void;
+  isClaim?: boolean;
 }
 
 function fieldsFromGrid(grid: Grid | null | undefined) {
@@ -23,7 +24,7 @@ function fieldsFromGrid(grid: Grid | null | undefined) {
   };
 }
 
-export function ProfileEditor({ ensName, initial, onSaved }: ProfileEditorProps) {
+export function ProfileEditor({ ensName, initial, onSaved, isClaim = false }: ProfileEditorProps) {
   const { address, walletClient, chainId, connect } = useWallet();
   const [fields, setFields] = useState(() => fieldsFromGrid(initial));
   const [busy, setBusy] = useState<"save" | "publish" | null>(null);
@@ -98,9 +99,15 @@ export function ProfileEditor({ ensName, initial, onSaved }: ProfileEditorProps)
   return (
     <section className="profile-editor">
       <div className="profile-editor__head">
-        <h3 style={{ margin: 0 }}>Edit profile</h3>
+        <h3 style={{ margin: 0 }}>{isClaim ? "Claim your profile" : "Edit profile"}</h3>
         <span className="profile-editor__status">{ensName}</span>
       </div>
+      {isClaim && !address ? (
+        <p className="profile-editor__hint">
+          Connect your wallet in the top-right corner first — it signs your profile. Gridz never
+          stores your private key.
+        </p>
+      ) : null}
       <div className="site-field">
         <label className="site-label" htmlFor="alias">
           Display name
@@ -143,7 +150,7 @@ export function ProfileEditor({ ensName, initial, onSaved }: ProfileEditorProps)
           {busy === "save" ? "Signing…" : "Sign & save draft"}
         </button>
         <button type="button" className="site-btn site-btn--primary" onClick={runPublish} disabled={busy !== null}>
-          {busy === "publish" ? "Publishing…" : "Publish to ENS"}
+          {busy === "publish" ? "Publishing…" : isClaim ? "Claim & publish" : "Publish to ENS"}
         </button>
       </div>
       {message ? (
