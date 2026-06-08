@@ -50,7 +50,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <footer className="site-footer">
         Cryptographically-attested profiles on{" "}
         <a href="https://gridz.bio">gridz.bio</a> · identity on{" "}
-        <code>*.gridz.eth</code> · <a href="/for-ai">For AI</a> · <a href="/llms.txt">llms.txt</a>
+        <code>*.gridz.eth</code> · <a href="/for-ai">For AI</a> · <a href="/llms.txt">llms.txt</a> ·{" "}
+        <a
+          href="https://github.com/orgs/Gridz-Protocol/repositories"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          GitHub
+        </a>
       </footer>
     </div>
   );
