@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toEnsSubname } from "../lib/ensNames";
-import { loadDraft } from "../lib/drafts";
+import { loadDraftBundle } from "../lib/drafts";
 import { rememberProfile } from "../lib/recentProfiles";
 
 const ENS_BASE = process.env.NEXT_PUBLIC_GRIDZ_ENS_BASE ?? "gridz.eth";
@@ -53,12 +53,12 @@ export function ProfileLookup({ autoFocus, showClaimHint = true }: ProfileLookup
             isDraft: false,
           });
         } else {
-          const draft = loadDraft(subject);
-          if (draft) {
+          const bundle = loadDraftBundle(subject);
+          if (bundle) {
             setState({
               phase: "found",
               subject,
-              displayName: draft.subject.display_name ?? subject.split(".")[0] ?? subject,
+              displayName: bundle.fields.alias.trim() || (subject.split(".")[0] ?? subject),
               isDraft: true,
             });
           } else {
@@ -139,7 +139,9 @@ export function ProfileLookup({ autoFocus, showClaimHint = true }: ProfileLookup
         <div className="profile-lookup__result profile-lookup__result--missing">
           <p>
             No published profile for <code>{state.subject}</code> yet.
-            {loadDraft(state.subject) ? " You have a local draft in this browser — open Edit to continue." : null}
+            {loadDraftBundle(state.subject)
+              ? " You have a local draft in this browser — open Edit to continue."
+              : null}
           </p>
           {showClaimHint ? (
             <div className="profile-lookup__actions">
@@ -150,7 +152,7 @@ export function ProfileLookup({ autoFocus, showClaimHint = true }: ProfileLookup
               >
                 Claim {state.subject.split(".")[0]}
               </button>
-              {loadDraft(state.subject) ? (
+              {loadDraftBundle(state.subject) ? (
                 <button
                   type="button"
                   className="site-btn"

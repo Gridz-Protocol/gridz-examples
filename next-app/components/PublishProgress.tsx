@@ -83,11 +83,13 @@ export function PublishProgress({
                 : "Signing your profile"}
             </p>
             <p className="publish-progress__sub">
-              {signCount
-                ? signCount === 1
-                  ? "Confirm the root signature in your wallet…"
-                  : `Confirm ${signCount} wallet prompt${signCount === 1 ? "" : "s"} — only changed fields plus the profile root.`
-                : "Confirm each prompt in your wallet…"}
+              {signCount && cellCount != null
+                ? `You'll see ${signCount} wallet prompt${signCount === 1 ? "" : "s"}, then we publish ${cellCount} changed field${cellCount === 1 ? "" : "s"} on-chain.`
+                : signCount
+                  ? signCount === 1
+                    ? "Confirm the profile root in your wallet…"
+                    : `Confirm ${signCount} wallet prompts — changed fields plus the profile root.`
+                  : "Confirm each prompt in your wallet…"}
             </p>
           </div>
         </div>
@@ -100,8 +102,8 @@ export function PublishProgress({
             <div>
               <p className="publish-progress__title">Publishing to Ethereum</p>
               <p className="publish-progress__sub">
-                Writing {cellCount} changed attestation{cellCount === 1 ? "" : "s"} on-chain. Unchanged
-                fields are skipped. Keep this tab open.
+                Batched on-chain publish — {cellCount} EAS attest{cellCount === 1 ? "" : "s"}, then resolver
+                links in one multicall. Unchanged fields are skipped. Keep this tab open.
               </p>
             </div>
           </div>
@@ -155,7 +157,7 @@ export function PublishProgress({
             <p className="publish-progress__title">Publish didn&apos;t finish</p>
             <p className="publish-progress__sub">{errorMessage}</p>
             {draftSaved ? (
-              <p className="publish-progress__sub">Your signed draft was saved in this browser.</p>
+              <p className="publish-progress__sub">Your unsigned draft was saved in this browser.</p>
             ) : null}
           </div>
           {onDismiss ? (

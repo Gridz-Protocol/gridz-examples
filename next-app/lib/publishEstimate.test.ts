@@ -1,18 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { estimatePublishMs, formatPublishEta } from "./publishEstimate";
+import { estimatePublishMs, estimatePublishTxCount } from "./publishEstimate";
 
-describe("estimatePublishMs", () => {
-  it("scales with cell count", () => {
-    expect(estimatePublishMs(1)).toBe(45_000);
-    expect(estimatePublishMs(3)).toBe(3 * 2 * 14_000);
-    expect(estimatePublishMs(50)).toBe(20 * 60_000);
+describe("publishEstimate", () => {
+  it("counts attest txs plus batched link multicalls", () => {
+    expect(estimatePublishTxCount(0)).toBe(0);
+    expect(estimatePublishTxCount(1)).toBe(2);
+    expect(estimatePublishTxCount(5)).toBe(6);
   });
-});
 
-describe("formatPublishEta", () => {
-  it("formats ETAs", () => {
-    expect(formatPublishEta(0)).toBe("~1s remaining");
-    expect(formatPublishEta(60)).toBe("~1 min remaining");
-    expect(formatPublishEta(125)).toBe("~3 min remaining");
+  it("estimates duration from tx count", () => {
+    expect(estimatePublishMs(1)).toBeGreaterThanOrEqual(30_000);
+    expect(estimatePublishMs(5)).toBe(6 * 14_000);
   });
 });

@@ -6,8 +6,8 @@ import type { Grid } from "@gridz/core";
 import { ClaimSteps } from "./ClaimSteps";
 import { ProfileEditor } from "./ProfileEditor";
 import { SpritzProfile } from "./SpritzProfile";
-import { loadDraft } from "../lib/drafts";
-import { mergeGrids } from "../lib/mergeGrids";
+import { loadDraftBundle } from "../lib/drafts";
+import { mergeFieldPreview } from "../lib/previewGrid";
 import { rememberProfile } from "../lib/recentProfiles";
 import { bioUrlForEns } from "../lib/subjectFromHost";
 import { isDemoProfile } from "../lib/demoProfile";
@@ -27,6 +27,7 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
   const [editing, setEditing] = useState(startClaiming);
   const [grid, setGrid] = useState<Grid | null>(chainGrid);
   const [source, setSource] = useState<"chain" | "draft" | "none">(chainGrid ? "chain" : "none");
+  const [draftBundle, setDraftBundle] = useState(() => loadDraftBundle(subject));
 
   const bioUrl = useMemo(() => bioUrlForEns(subject), [subject]);
   const displayAlias = subject.split(".")[0] ?? subject;
@@ -40,13 +41,15 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
       publishedRef.current = false;
       return;
     }
-    const draft = loadDraft(subject);
-    const merged = mergeGrids(chainGrid, draft);
-    if (merged) {
-      const chainKeys = new Set(chainGrid?.cells.map((c) => c.key) ?? []);
-      const draftOnly = draft?.cells.some((c) => !chainKeys.has(c.key)) ?? false;
+    const bundle = loadDraftBundle(subject);
+    setDraftBundle(bundle);
+    if (bundle) {
+      const merged = mergeFieldPreview(chainGrid, bundle.fields, subject);
       setGrid(merged);
-      setSource(chainGrid ? (draftOnly ? "draft" : "chain") : "draft");
+      setSource(chainGrid ? "draft" : "draft");
+    } else if (chainGrid) {
+      setGrid(chainGrid);
+      setSource("chain");
     } else {
       setGrid(null);
       setSource("none");
@@ -106,7 +109,15 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
         {editing ? (
           <>
             {source === "none" ? <ClaimSteps ensName={subject} /> : null}
-            <ProfileEditor ensName={subject} initial={grid} onSaved={onSaved} isClaim={source === "none"} />
+            <ProfileEditor
+              ensName={subject}
+              initial={grid}
+              chainBaseline={chainGrid}
+              signedBaseline={draftBundle?.signedBaseline ?? null}
+              initialFields={draftBundle?.fields ?? null}
+              onSaved={onSaved}
+              isClaim={source === "none"}
+            />
           </>
         ) : null}
       </div>

@@ -81,6 +81,29 @@ function effectiveValueHash(cell: Cell): string | null {
   return raw;
 }
 
+
+export function countFieldsToPublish(
+  fields: ProfileEditorState,
+  chainBaseline: Grid | null | undefined,
+): number {
+  const drafts = profileCellsFromFields(fields);
+  if (!chainBaseline) return drafts.length;
+  const byKey = baselineCellByKey(chainBaseline);
+  const algo = algoForFormat("eip712-raw");
+  let n = 0;
+  for (const draft of drafts) {
+    const onChain = byKey.get(draft.key);
+    if (!onChain) {
+      n += 1;
+      continue;
+    }
+    const prev = effectiveValueHash(onChain);
+    const next = valueHash(algo, draft.value);
+    if (!prev || prev !== next) n += 1;
+  }
+  return n;
+}
+
 export function countCellsToPublish(grid: Grid, chainBaseline: Grid | null | undefined): number {
   if (!chainBaseline) return grid.cells.length;
   const byKey = baselineCellByKey(chainBaseline);
