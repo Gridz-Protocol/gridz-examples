@@ -37,6 +37,13 @@ export async function loadGrid(subject: string): Promise<Grid | null> {
     if (fromResolver) return fromResolver;
   }
 
-  const sink = new EnsSink(new ReadOnlyEnsBackend(client), subject);
-  return sink.readGrid();
+  // ENS text fallback only works on chains with a universal resolver (L1 / Sepolia).
+  if (chainId !== 1 && chainId !== 11155111) return null;
+
+  try {
+    const sink = new EnsSink(new ReadOnlyEnsBackend(client), subject);
+    return await sink.readGrid();
+  } catch {
+    return null;
+  }
 }
