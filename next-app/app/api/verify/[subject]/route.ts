@@ -3,6 +3,8 @@ import { verifyGrid } from "@gridz/core";
 import { loadGrid } from "../../../../lib/loadGrid";
 import { productionVerifyContext } from "../../../../lib/verifyContext";
 
+export const maxDuration = 60;
+
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ subject: string }> },
