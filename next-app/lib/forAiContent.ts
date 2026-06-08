@@ -89,7 +89,7 @@ Signing requires EIP-712 typed data per cell (\`GridzCell\`) plus a root (\`Grid
 | \`alias\` | Display name |
 | \`description\` | Bio |
 | \`url\` | Website (https) |
-| \`avatar\` | Profile image URL |
+| \`avatar\` | Profile image URL (often IPFS via Pinata; image bytes are off-chain) |
 | \`com.twitter\`, \`com.github\`, \`social.bsky\` | Social handles |
 | \`agent-context\` | Free-form context for agents (ENSIP-26) |
 | \`agent-endpoint[mcp]\` | MCP server URL (ENSIP-26) |
@@ -134,7 +134,7 @@ See [Verification docs](${FOR_AI_LINKS.verification})
 
 ## Optional
 
-- [Find profile](${FOR_AI_LINKS.find}) — lookup by alias
+- [Find profile](${FOR_AI_LINKS.find}) — lookup by alias; live suggestions (up to 5 matches) as you type
 - [Claim UI](${FOR_AI_LINKS.claim}) — human wallet flow
 - OpenAPI (self-hosted server): \`specs/openapi.yaml\` in monorepo
 `;
@@ -290,6 +290,7 @@ Monorepo: ${FOR_AI_LINKS.github} · TS: ${FOR_AI_LINKS.githubJs} · Py: ${FOR_AI
 - Treat \`POST /api/publish\` as editor-only unless you operate the registrar
 - \`ok: false\` from profile API means on-chain empty — not a bug
 - Browser **Draft** profiles are localStorage only; API won't see them
+- gridz.bio editor: **Save draft** (unsigned localStorage) → **Sign & publish** (incremental EIP-712 + EAS). Unclaimed names stay editable until on-chain publish.
 - Widget keys are \`gridz.*\`; social keys use reverse-dot (\`com.github\`)
 
 ## Further reading

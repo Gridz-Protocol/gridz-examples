@@ -28,6 +28,10 @@ export default function DocsHome() {
           <a href="/docs/using-gridz">Using gridz.bio</a> — URLs, drafts, editing, and what visitors
           see.
         </li>
+        <li>
+          <a href="/find">Find a profile</a> — search by alias with live on-chain and draft
+          suggestions.
+        </li>
       </ul>
 
       <h2>What you get</h2>

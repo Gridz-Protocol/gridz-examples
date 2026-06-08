@@ -61,8 +61,8 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
 
   const onPreview = useCallback((g: Grid) => {
     setGrid(g);
-    if (source !== "none") setSource("draft");
-  }, [source]);
+    setSource((s) => (s === "none" ? s : "draft"));
+  }, []);
 
   const onSaved = useCallback(
     (g: Grid, src: "draft" | "chain") => {
@@ -79,12 +79,15 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
   );
 
   const demo = isDemoProfile(subject);
-  const isOwner = grid ? isProfileOwner(grid, address, targetChainId) : false;
-  const canEdit = !grid || isOwner;
+  // Permissions follow on-chain baseline — not the live draft preview grid (unsigned placeholders).
+  const isChainOwner = chainGrid
+    ? isProfileOwner(chainGrid, address, targetChainId)
+    : true;
+  const canEdit = !chainGrid || isChainOwner;
 
   useEffect(() => {
-    if (grid && !isOwner && editing) setEditing(false);
-  }, [grid, isOwner, editing]);
+    if (chainGrid && !isChainOwner && editing) setEditing(false);
+  }, [chainGrid, isChainOwner, editing]);
 
   return (
     <>
@@ -133,8 +136,9 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
           <>
             {source === "none" ? <ClaimSteps ensName={subject} /> : null}
             <ProfileEditor
+              key={`editor-${subject}`}
               ensName={subject}
-              initial={grid}
+              initial={chainGrid}
               chainBaseline={chainGrid}
               signedBaseline={draftBundle?.signedBaseline ?? null}
               initialFields={draftBundle?.fields ?? null}
@@ -155,7 +159,7 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
       ) : null}
 
       {grid ? (
-        <SpritzProfile grid={grid} subject={subject} showOwnerHints={isOwner} />
+        <SpritzProfile grid={grid} subject={subject} showOwnerHints={isChainOwner} />
       ) : (
         <div className="profile-layout">
           <div className="profile-empty">

@@ -77,18 +77,40 @@ export default function UsingGridzPage() {
         draft.
       </p>
 
-      <h2>Editing (owners only)</h2>
+      <h2>Find profiles</h2>
+      <p>
+        <a href="/find">gridz.bio/find</a> looks up <code>alias.{ens}</code> by alias. As you type,
+        up to five clickable suggestions appear (published on-chain profiles and local drafts in this
+        browser). Press <strong>Find profile</strong> or pick a suggestion to open the page.
+      </p>
+
+      <h2>Claiming vs editing</h2>
+      <ul>
+        <li>
+          <strong>Unclaimed</strong> — no on-chain grid yet. Anyone can open <strong>Claim profile</strong>{" "}
+          and publish. A local draft preview does not lock the name; only a successful on-chain publish
+          does.
+        </li>
+        <li>
+          <strong>Published</strong> — <strong>Edit profile</strong> appears only when your connected
+          wallet matches the on-chain attester. Visitors see <strong>Query &amp; verify</strong> but
+          not the editor.
+        </li>
+      </ul>
+
+      <h2>Editing (owners &amp; claimants)</h2>
       <ol>
         <li>
-          Visit your page (<code>https://you.{bio}</code>) and connect the <em>same wallet</em> that
-          signed the profile.
+          Visit your page (<code>https://you.{bio}</code>) or start from <a href="/claim">/claim</a>.
+          Connect your wallet when you&apos;re ready to sign.
         </li>
         <li>
-          <strong>Edit profile</strong> appears only when your connected wallet matches the grid
-          attester. Visitors see <strong>Query &amp; verify</strong> but not the editor.
+          For published profiles, connect the <em>same wallet</em> that signed the grid to see{" "}
+          <strong>Edit profile</strong>.
         </li>
         <li>
-          Add or change fields and widget cards — the bento preview below the editor updates live.
+          Add or change fields and widget cards — the bento preview below the editor updates live
+          without resetting your inputs.
         </li>
         <li>
           <strong>Save draft</strong> to persist locally without signing, or <strong>Sign &amp; publish</strong>{" "}
@@ -173,6 +195,15 @@ export default function UsingGridzPage() {
       <p>
         Social handles (X, GitHub, Bluesky, Discord, Telegram) render as header buttons, not bento
         cards. See the live gallery at <a href="https://demo.gridz.bio">demo.gridz.bio</a>.
+      </p>
+
+      <h2>Avatars &amp; images</h2>
+      <p>
+        Profile photos are stored as a signed <code>avatar</code> cell containing an HTTPS URL — usually
+        an IPFS gateway link after you upload in the editor (pinned via Pinata). The image file is{" "}
+        <em>not</em> on-chain; only the URL is attested. Uploads are cropped to a 256×256 JPEG; the
+        site serves optimized WebP via Next.js Image for fast display and preloads the hero avatar on
+        profile pages.
       </p>
 
       <h2>Query &amp; verify (every profile)</h2>

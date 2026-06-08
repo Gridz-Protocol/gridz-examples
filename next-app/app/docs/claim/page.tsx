@@ -35,8 +35,8 @@ export default function ClaimDocsPage() {
           Click <strong>Connect wallet</strong> in the top right.
         </li>
         <li>
-          Upload a <strong>1:1 avatar</strong> (or paste an image URL), then fill in display name, bio,
-          and website.
+          Upload a <strong>1:1 avatar</strong> (cropped to 256×256, pinned to IPFS via Pinata) or paste
+          an image URL, then fill in display name, bio, and website.
         </li>
         <li>
           Under <strong>Add widgets</strong>, enable Stats, Poll, Countdown, Org tokens, and/or other
@@ -88,6 +88,13 @@ export default function ClaimDocsPage() {
           </tr>
         </tbody>
       </table>
+
+      <h2>Find an existing profile</h2>
+      <p>
+        Use <a href="/find">/find</a> to search by alias — live suggestions show up to five matches as
+        you type (on-chain and local drafts). Useful before claiming a name or opening someone
+        else&apos;s page.
+      </p>
 
       <h2>Already claimed?</h2>
       <p>

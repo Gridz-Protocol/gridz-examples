@@ -1,5 +1,5 @@
 /** Center-crop an image file to a square JPEG blob (1:1). */
-export async function cropImageToSquare(file: File, size = 512, quality = 0.88): Promise<Blob> {
+export async function cropImageToSquare(file: File, size = 256, quality = 0.88): Promise<Blob> {
   const bitmap = await createImageBitmap(file);
   const side = Math.min(bitmap.width, bitmap.height);
   const sx = Math.floor((bitmap.width - side) / 2);

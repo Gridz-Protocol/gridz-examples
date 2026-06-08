@@ -66,10 +66,11 @@ export function ProfileEditor({
     draftSaved?: boolean;
   } | null>(null);
 
+  // Re-hydrate only when the saved draft bundle changes — not on live preview grid updates.
   useEffect(() => {
-    if (busy !== null) return;
-    setFields(initialFields ?? fieldsFromGrid(initial));
-  }, [initial, initialFields, busy]);
+    if (busy !== null || !initialFields) return;
+    setFields(initialFields);
+  }, [initialFields, busy]);
 
   useEffect(() => {
     if (!onPreview) return;

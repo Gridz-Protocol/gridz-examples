@@ -8,6 +8,7 @@ import {
   resolveSpritzWidget,
   spritzSpan,
 } from "./spritz/SpritzWidgets";
+import { ProfileAvatar } from "./ProfileAvatar";
 import { demoAvatarForDisplay } from "../lib/demoProfile";
 import { normalizeUrl } from "../lib/normalizeUrl";
 import "./spritz-profile.css";
@@ -39,14 +40,7 @@ export function SpritzProfile({ grid, subject, showOwnerHints = false }: SpritzP
       ) : null}
 
       <section className="spritz-hero">
-        <div className="spritz-hero__avatar">
-          {avatar ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={avatar} alt="" />
-          ) : (
-            <span>{header.alias.slice(0, 1).toUpperCase()}</span>
-          )}
-        </div>
+        <ProfileAvatar src={avatar} fallbackLetter={header.alias} />
         <div className="spritz-hero__body">
           <div className="spritz-hero__title-row">
             <h1>{header.alias}</h1>

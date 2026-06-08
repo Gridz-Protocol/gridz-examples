@@ -18,6 +18,7 @@ const MACHINE_FILES = [
 ];
 
 const QUICK_LINKS = [
+  { href: "/find", label: "Find profile", desc: "Search by alias with live suggestions (on-chain + local drafts)" },
   { href: "/docs/api", label: "API reference", desc: "GET /api/profile/{ens} — read any published profile" },
   { href: "/docs/toolkit", label: "Toolkit", desc: "@gridz/core, mcp, sdk, sinks, oneclaw" },
   { href: "/docs/cli", label: "CLI", desc: "gridz init, build, verify, publish" },
