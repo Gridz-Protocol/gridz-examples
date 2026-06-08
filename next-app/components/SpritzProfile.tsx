@@ -1,8 +1,8 @@
 "use client";
 
-import type { Grid } from "@gridz/core";
+import type { Cell, Grid } from "@gridz/core";
 import { themeToCssVars } from "@gridz/react";
-import { useVerification } from "@gridz/react";
+import { useVerification, type BadgeStatus } from "@gridz/react";
 import { headerFromGrid, socialCells, widgetCells } from "../lib/profileLayout";
 import {
   resolveSpritzWidget,
@@ -49,7 +49,17 @@ export function SpritzProfile({ grid, subject }: SpritzProfileProps) {
           </div>
           <p className="spritz-hero__handle">{header.handle}</p>
           {header.description ? <p className="spritz-hero__bio">{header.description}</p> : null}
-          <p className="spritz-hero__meta">{widgets.length + socials.length} widgets</p>
+          {socials.length > 0 || widgets.length > 0 ? (
+            <p className="spritz-hero__meta">
+              {socials.length > 0
+                ? `${socials.length} link${socials.length === 1 ? "" : "s"}`
+                : null}
+              {socials.length > 0 && widgets.length > 0 ? " · " : null}
+              {widgets.length > 0
+                ? `${widgets.length} widget${widgets.length === 1 ? "" : "s"}`
+                : null}
+            </p>
+          ) : null}
           <div className="spritz-hero__actions">
             {messageMe ? (
               <a className="spritz-cta" href={String(messageMe.value)}>
@@ -83,7 +93,7 @@ export function SpritzProfile({ grid, subject }: SpritzProfileProps) {
         ) : (
           widgets.map((cell) => {
             const W = resolveSpritzWidget(cell);
-            const status = verification.cells[cell.id] ?? "loading";
+            const badge = cellBadge(cell, verification.cells[cell.id] ?? "loading");
             return (
               <article
                 key={cell.id}
@@ -94,10 +104,10 @@ export function SpritzProfile({ grid, subject }: SpritzProfileProps) {
                 <header className="spritz-card__head">
                   <span className="spritz-card__label">{labelForKey(cell.key)}</span>
                   <span
-                    className={`spritz-card__badge spritz-card__badge--${status}`}
-                    title={`Verification: ${status}`}
+                    className={`spritz-card__badge spritz-card__badge--${badge.tone}`}
+                    title={badge.title}
                   >
-                    {status === "verified" ? "✓" : status === "failed" ? "!" : "…"}
+                    {badge.glyph}
                   </span>
                 </header>
                 <W cell={cell} />
@@ -117,6 +127,26 @@ export function SpritzProfile({ grid, subject }: SpritzProfileProps) {
 
 function labelForKey(key: string): string {
   if (key.startsWith("gridz.")) return key.replace("gridz.", "").replace(/_/g, " ");
-  if (key.includes(".")) return key.split(".").reverse().join(" ");
   return key;
+}
+
+function cellBadge(
+  cell: Cell,
+  status: BadgeStatus,
+): { glyph: string; tone: string; title: string } {
+  if (status === "verified") {
+    return { glyph: "✓", tone: "verified", title: "Signature verified" };
+  }
+  if (
+    status === "failed" &&
+    cell.attestation.format === "eas-onchain" &&
+    cell.attestation.uid &&
+    !cell.attestation.payload
+  ) {
+    return { glyph: "⛓", tone: "onchain", title: "On-chain EAS attestation (loaded from ENS)" };
+  }
+  if (status === "failed") {
+    return { glyph: "!", tone: "failed", title: "Signature verification failed" };
+  }
+  return { glyph: "…", tone: "loading", title: "Verifying…" };
 }

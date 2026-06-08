@@ -14,9 +14,17 @@ const SOCIAL_ICON: Record<string, string> = {
   "xyz.farcaster": "🟣",
 };
 
+const SOCIAL_NAME: Record<string, string> = {
+  "com.twitter": "X",
+  "com.github": "GitHub",
+  "com.discord": "Discord",
+  "org.telegram": "Telegram",
+  "social.bsky": "Bluesky",
+  "xyz.farcaster": "Farcaster",
+};
+
 function socialLabel(key: string) {
-  const parts = key.split(".");
-  return parts.length > 1 ? parts[0]!.toUpperCase() : key;
+  return SOCIAL_NAME[key] ?? key;
 }
 
 export function SpritzStats({ cell }: { cell: Cell }) {

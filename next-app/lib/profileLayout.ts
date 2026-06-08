@@ -31,14 +31,16 @@ export function headerFromGrid(grid: Grid, subject: string) {
   return { alias, description, url, avatar, header, handle, subject };
 }
 
+export function isSocialKey(key: string): boolean {
+  return key.includes(".") && !key.startsWith("gridz.") && !HEADER_KEYS.has(key);
+}
+
 export function widgetCells(grid: Grid): Cell[] {
   return grid.cells
-    .filter((c) => c.is_visible && !HEADER_KEYS.has(c.key))
+    .filter((c) => c.is_visible && !HEADER_KEYS.has(c.key) && !isSocialKey(c.key))
     .sort((a, b) => a.position.y - b.position.y || a.position.x - b.position.x);
 }
 
 export function socialCells(grid: Grid): Cell[] {
-  return grid.cells.filter(
-    (c) => c.is_visible && c.key.includes(".") && !c.key.startsWith("gridz.") && !HEADER_KEYS.has(c.key),
-  );
+  return grid.cells.filter((c) => c.is_visible && isSocialKey(c.key));
 }

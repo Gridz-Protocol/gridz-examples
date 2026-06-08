@@ -171,6 +171,7 @@
 }
 
 .spritz-card__badge--verified { color: #28c76f; }
+.spritz-card__badge--onchain { color: #60a5fa; }
 .spritz-card__badge--failed { color: #ea5455; }
 .spritz-card__badge--loading { color: var(--spritz-muted); }
 
