@@ -6,7 +6,7 @@ export default function ClaimDocsPage() {
     <>
       <h1>Claim your profile</h1>
       <p>
-        No account signup, no platform lock-in. You pick a name, connect your wallet, sign your
+        No account signup, no platform lock-in. You pick a name, connect your wallet, fill in your
         fields, and publish to Ethereum. Your identity is <code>alias.{ens}</code>; your public page
         is <code>alias.{bio}</code>.
       </p>
@@ -39,17 +39,18 @@ export default function ClaimDocsPage() {
           and website.
         </li>
         <li>
-          Under <strong>Widget cards</strong>, enable Stats, Poll, and/or Featured link. Add social
-          handles for X, GitHub, and Bluesky.
+          Under <strong>Add widgets</strong>, enable Stats, Poll, Countdown, Org tokens, and/or other
+          cards. Add social handles for X, GitHub, and Bluesky. The preview below updates live.
         </li>
         <li>
-          Click <strong>Sign &amp; save draft</strong> to preview locally. You&apos;ll see a{" "}
-          <strong>Draft</strong> badge — only visible in this browser.
+          Click <strong>Save draft</strong> anytime to persist edits in this browser — no wallet
+          signatures yet. You&apos;ll see a <strong>Draft</strong> badge.
         </li>
         <li>
-          Click <strong>Publish to ENS</strong> when ready. Your wallet will ask you to sign several
-          messages (one per field + the grid root). Then the server writes on-chain attestations —
-          this can take about a minute. When done, the badge switches to <strong>On-chain</strong>.
+          Click <strong>Sign &amp; publish to ENS</strong> when ready. Your wallet signs only changed
+          fields plus the grid root. The progress UI shows how many prompts to expect. The server
+          then writes EAS attestations and batches resolver links on-chain — usually under a minute
+          for a first publish. When done, the badge switches to <strong>On-chain</strong>.
         </li>
         <li>
           Visit <code>https://you.{bio}</code>. New subdomains may take a minute to propagate.
@@ -82,7 +83,7 @@ export default function ClaimDocsPage() {
           </tr>
           <tr>
             <td>Signed cells</td>
-            <td>alias, description, url, …</td>
+            <td>alias, description, url, gridz.* widgets, …</td>
             <td>Your wallet — each field has its own attestation</td>
           </tr>
         </tbody>
@@ -90,8 +91,9 @@ export default function ClaimDocsPage() {
 
       <h2>Already claimed?</h2>
       <p>
-        Visit your URL and click <strong>Edit profile</strong>. Connect the same wallet, update
-        fields, sign, and publish again. Changes replace the previous on-chain attestations.
+        Visit your URL, connect the same wallet, and click <strong>Edit profile</strong> (only visible
+        to the owner). Update fields, save a draft or sign &amp; publish. Incremental publish reuses
+        unchanged attestations — you only sign and write cells that actually changed.
       </p>
 
       <h2>API access</h2>
@@ -100,8 +102,8 @@ export default function ClaimDocsPage() {
         <code>{`GET https://${bio}/api/profile/kevin.${ens}`}</code>
       </pre>
       <p>
-        See <a href="/docs/api">API &amp; integrations</a> for the full response shape and embed
-        examples.
+        On your profile page, use <strong>Query &amp; verify</strong> for copy-paste fetch and verify
+        commands. See <a href="/docs/api">API &amp; integrations</a> for the full response shape.
       </p>
     </>
   );

@@ -9,8 +9,17 @@ export default function VerificationPage() {
 
       <h2>On the website</h2>
       <p>
-        Published profiles show verification badges on each cell. Click a badge to inspect the
-        attestation: signer, format, timestamp, and value hash.
+        Every profile page has a <strong>Query &amp; verify</strong> button in the toolbar. It opens a
+        modal with the JSON API URL, curl example, and copy-paste <code>verifyGrid</code> snippets for
+        that specific ENS name — plus notes on checking EAS UIDs on easscan.org.
+      </p>
+      <p>
+        Published profiles also show verification badges on each cell (✓ verified, ⛓ on-chain loaded
+        from ENS). Hover a badge for attestation format and status.
+      </p>
+      <p>
+        If you see a <strong>Draft</strong> badge, the modal explains that query/verify steps apply to
+        the published on-chain profile, not local browser edits.
       </p>
 
       <h2>Offline verification (TypeScript)</h2>

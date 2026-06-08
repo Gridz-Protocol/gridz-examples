@@ -69,17 +69,24 @@ GET https://${bio}/api/profile/kevin.gridz.eth`}</code>
       <p>The claim UI handles publish for you. Under the hood:</p>
       <ol>
         <li>
-          <strong>You sign</strong> — your wallet signs each cell and the grid root (EIP-712) in the
-          browser.
+          <strong>Draft locally</strong> — <strong>Save draft</strong> stores unsigned field edits in
+          localStorage (no wallet). Not visible via this API.
         </li>
         <li>
-          <strong>Server attests</strong> — <code>POST /api/publish</code> takes your signed Grid and
-          writes EAS attestations on Ethereum, linking them in the GridzResolver. This uses a
-          registrar key on the server; you do not sign those transactions.
+          <strong>You sign</strong> — <strong>Sign &amp; publish</strong> prompts your wallet for only{" "}
+          <em>changed</em> cells plus the grid root (EIP-712). Unchanged cells reuse prior
+          attestations.
         </li>
         <li>
-          <strong>Public read</strong> — the profile API and web pages read attestations back from
-          the resolver.
+          <strong>Server attests</strong> — <code>POST /api/publish</code> takes your signed Grid,
+          writes new EAS attestations for changed cells, and batches GridzResolver{" "}
+          <code>setCellAttestation</code> calls via Multicall3. Uses a registrar key on the server;
+          you do not sign those transactions.
+        </li>
+        <li>
+          <strong>Public read</strong> — this API and profile pages read attestations back from the
+          resolver. Use <strong>Query &amp; verify</strong> on any profile for fetch + verify
+          instructions.
         </li>
       </ol>
       <p>

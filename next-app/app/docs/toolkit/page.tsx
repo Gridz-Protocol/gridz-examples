@@ -199,15 +199,24 @@ export default function ToolkitPage() {
         <a href="https://github.com/Gridz-Protocol/gridz" target="_blank" rel="noreferrer">
           gridz
         </a>{" "}
-        repo defines the Grid JSON schema, attestation envelope, EIP-712 types, canonicalization rules,
+        superproject defines the Grid JSON schema, attestation envelope, EIP-712 types, canonicalization rules,
         and OpenAPI 3.1 API. SDKs are generated and tested against these — not the other way around.
       </p>
 
       <h2>Examples</h2>
       <ul>
         <li>
-          <strong>gridz.bio (<code>examples/next-app</code>)</strong> — this site: claim UI, profile
-          pages, profile API, EAS publish.
+          <strong>gridz.bio (<code>examples/next-app</code>)</strong> — this site: claim UI, Spritz
+          profile pages, widget editor, unsigned drafts, incremental sign/publish, profile API, EAS
+          publish. Source:{" "}
+          <a href="https://github.com/Gridz-Protocol/gridz-examples" target="_blank" rel="noreferrer">
+            gridz-examples
+          </a>
+          .
+        </li>
+        <li>
+          <strong>demo.gridz.eth</strong> — live widget showcase; refresh with{" "}
+          <code>pnpm demo:publish</code> from the examples app.
         </li>
         <li>
           <strong>minimal-cli</strong> — smallest end-to-end flow: <code>gridz.yaml</code> → sign →

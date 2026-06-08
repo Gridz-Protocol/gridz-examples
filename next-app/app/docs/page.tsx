@@ -47,12 +47,24 @@ export default function DocsHome() {
           <strong>Signed attestations</strong> — each field (name, bio, links, widgets) carries a
           proof your wallet signed it.
         </li>
+        <li>
+          <strong>Widget gallery</strong> — stats, polls, countdowns, org token listings, and more in
+          a Spritz-style bento grid.
+        </li>
+        <li>
+          <strong>Query &amp; verify</strong> — every profile page links to API fetch and offline
+          verification steps for that ENS name.
+        </li>
       </ul>
 
       <h2>Who is this for?</h2>
       <ul>
         <li>
           <strong>People</strong> — a link-in-bio you actually own, not a platform account.
+        </li>
+        <li>
+          <strong>Organizations</strong> — list official token contracts by chain with the{" "}
+          <code>gridz.tokens</code> widget.
         </li>
         <li>
           <strong>Builders</strong> — embed profiles with <code>@gridz/react</code>, fetch via the
@@ -68,11 +80,12 @@ export default function DocsHome() {
       <p>
         Gridz is an open framework — not just this website. The specs, TypeScript packages, Python
         packages, smart contracts, and CLI all live in the{" "}
-        <a href="https://github.com/Gridz-Protocol/gridz" target="_blank" rel="noreferrer">
+        <a href="https://github.com/orgs/Gridz-Protocol/repositories" target="_blank" rel="noreferrer">
           Gridz-Protocol
         </a>{" "}
-        repos. See the <a href="/docs/toolkit">Toolkit</a> page for what each package does and when
-        you&apos;d use it.
+        org on GitHub (<code>gridz</code>, <code>gridz-js</code>, <code>gridz-examples</code>, …).
+        See the <a href="/docs/toolkit">Toolkit</a> page for what each package does and when you&apos;d
+        use it.
       </p>
 
       <h2>Why Gridz</h2>

@@ -68,11 +68,21 @@ export default function ConceptsPage() {
         </li>
       </ul>
 
+      <h2>Widget cells</h2>
+      <p>
+        Optional bento cards use keys like <code>gridz.stats</code>, <code>gridz.poll</code>,{" "}
+        <code>gridz.countdown</code>, and <code>gridz.tokens</code> (for organization token listings).
+        They are ordinary cells with a <code>widget_type</code> — signed and attested like any other
+        field.
+      </p>
+
       <h2>Draft vs on-chain</h2>
       <p>
-        <strong>Draft</strong> = signed in your browser, saved locally, not published.{" "}
-        <strong>On-chain</strong> = EAS attestations written to Ethereum; public via gridz.bio and the
-        API. See <a href="/docs/using-gridz">Using gridz.bio</a>.
+        <strong>Draft</strong> = unsigned field edits saved in localStorage in one browser; preview
+        only, not published. <strong>On-chain</strong> = wallet-signed cells written as EAS
+        attestations on Ethereum; public via gridz.bio and the API. Signing happens at{" "}
+        <em>publish</em> time, not on every draft save. See{" "}
+        <a href="/docs/using-gridz">Using gridz.bio</a>.
       </p>
 
       <h2>No custodied keys</h2>
