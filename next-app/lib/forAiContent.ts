@@ -30,7 +30,7 @@ export const FOR_AI_LINKS = {
 export function buildLlmsTxt(): string {
   return `# Gridz
 
-> Gridz is an open framework for cryptographically-attested profiles on Ethereum.
+> Gridz is an open framework for cryptographically-attested profiles on Base.
 > Identity: \`alias.${ENS_BASE}\` · Public page: \`https://alias.${SITE}\` · Every cell is wallet-signed (EIP-712) and published via EAS on mainnet.
 
 This file is for LLMs, agents, and automated tools. Start here before integrating with Gridz.

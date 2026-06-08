@@ -203,7 +203,7 @@ export function ProfileEditor({
             </div>
             <p className="wallet-banner__sub">
               Edit freely — drafts stay unsigned until you hit <strong>Sign &amp; publish</strong>. You pay
-              mainnet gas for EAS attestations and resolver links (~2 txs per changed field), plus EIP-712
+              Base gas for EAS attestations and resolver links (~2 txs per changed field), plus EIP-712
               signatures (free).
             </p>
           </>

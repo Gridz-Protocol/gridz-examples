@@ -37,7 +37,7 @@ export default function ConceptsPage() {
           <strong>EIP-712</strong> — what your browser wallet signs at claim time.
         </li>
         <li>
-          <strong>EAS on-chain</strong> — what gridz.bio writes to Ethereum when you publish (wraps
+          <strong>EAS on-chain</strong> — what gridz.bio writes to Base when you publish (wraps
           your signature in an Ethereum Attestation Service record).
         </li>
         <li>
@@ -52,7 +52,7 @@ export default function ConceptsPage() {
       <h2>Sink</h2>
       <p>
         A place a signed Grid gets <em>projected</em> to — ENS, SQLite, Postgres, S3, etc. For
-        gridz.bio users the sink is <strong>ENS on Ethereum mainnet</strong>, backed by the
+        gridz.bio users the sink is <strong>ENS on Base</strong>, backed by the
         GridzResolver and EAS. Sinks make data easy to query; they don&apos;t replace signatures.
       </p>
 
@@ -80,7 +80,7 @@ export default function ConceptsPage() {
       <p>
         <strong>Draft</strong> = unsigned field edits saved in localStorage in one browser; preview
         only, not published. <strong>On-chain</strong> = wallet-signed cells written as EAS
-        attestations on Ethereum; public via gridz.bio and the API. Signing happens at{" "}
+        attestations on Base; public via gridz.bio and the API. Signing happens at{" "}
         <em>publish</em> time, not on every draft save. See{" "}
         <a href="/docs/using-gridz">Using gridz.bio</a>.
       </p>

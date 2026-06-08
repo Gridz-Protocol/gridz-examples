@@ -174,7 +174,7 @@ export default function ToolkitPage() {
       <p>
         The on-chain piece behind <code>*.gridz.eth</code> profiles. It is an ENSIP-10 wildcard
         resolver: when someone looks up <code>you.gridz.eth</code>, the resolver returns text records
-        backed by <strong>EAS attestations</strong> on Ethereum mainnet.
+        backed by <strong>EAS attestations</strong> on Base.
       </p>
       <ul>
         <li>
@@ -238,7 +238,7 @@ export default function ToolkitPage() {
         │
         ▼ publish            (@gridz/cli / gridz.bio / @gridz/sinks → ENS)
         │
-        ▼ on-chain           (GridzResolver + EAS on Ethereum)
+        ▼ on-chain           (GridzResolver + EAS on Base)
         │
         ├─► gridz.bio page   (read + render)
         ├─► Profile API      (read JSON)

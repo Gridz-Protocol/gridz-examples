@@ -4,7 +4,7 @@ export default function DocsHome() {
       <h1>Gridz documentation</h1>
       <p>
         Gridz gives you a <strong>verifiable profile</strong> — a page and an identity you control
-        with your wallet. Your name lives at <code>you.gridz.eth</code> on Ethereum; your public page
+        with your wallet. Your name lives at <code>you.gridz.eth</code> on Base; your public page
         lives at <code>you.gridz.bio</code>. Every field is cryptographically signed, so anyone can
         prove it came from you.
       </p>
@@ -37,7 +37,7 @@ export default function DocsHome() {
       <h2>What you get</h2>
       <ul>
         <li>
-          <strong>ENS identity</strong> — <code>alias.gridz.eth</code>, resolved on Ethereum.
+          <strong>ENS identity</strong> — <code>alias.gridz.eth</code>, resolved on Base.
         </li>
         <li>
           <strong>Public profile page</strong> — <code>https://alias.gridz.bio</code> with a

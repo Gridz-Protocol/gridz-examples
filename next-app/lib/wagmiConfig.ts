@@ -1,15 +1,18 @@
 import { getDefaultConfig } from "@rainbow-me/rainbowkit";
 import { http } from "wagmi";
-import { mainnet, sepolia } from "wagmi/chains";
+import { base, mainnet, sepolia } from "viem/chains";
+import { gridzChainForId } from "./gridzChain";
 
 export const GRIDZ_CHAIN_ID = Number(process.env.NEXT_PUBLIC_GRIDZ_CHAIN_ID ?? "1");
 
-const chains = GRIDZ_CHAIN_ID === 11155111 ? ([sepolia] as const) : ([mainnet] as const);
+const activeChain = gridzChainForId(GRIDZ_CHAIN_ID);
+const chains = [activeChain] as const;
 
-/** Browser-safe RPC — avoids eth.merkle.io CORS failures in the client. */
-const mainnetRpc =
-  process.env.NEXT_PUBLIC_GRIDZ_RPC_URL?.trim() || "https://ethereum.publicnode.com";
-const sepoliaRpc = "https://ethereum-sepolia.publicnode.com";
+const rpcByChain: Record<number, string> = {
+  [mainnet.id]: process.env.NEXT_PUBLIC_GRIDZ_RPC_URL?.trim() || "https://ethereum.publicnode.com",
+  [sepolia.id]: "https://ethereum-sepolia.publicnode.com",
+  [base.id]: process.env.NEXT_PUBLIC_GRIDZ_RPC_URL?.trim() || "https://base.publicnode.com",
+};
 
 /**
  * WalletConnect / Reown project id — https://cloud.reown.com (free).
@@ -26,7 +29,8 @@ export const wagmiConfig = getDefaultConfig({
   chains,
   ssr: true,
   transports: {
-    [mainnet.id]: http(mainnetRpc),
-    [sepolia.id]: http(sepoliaRpc),
+    [mainnet.id]: http(rpcByChain[mainnet.id]),
+    [sepolia.id]: http(rpcByChain[sepolia.id]),
+    [base.id]: http(rpcByChain[base.id]),
   },
 });

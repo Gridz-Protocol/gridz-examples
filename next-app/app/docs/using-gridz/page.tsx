@@ -25,7 +25,7 @@ export default function UsingGridzPage() {
             <td>
               <code>kevin.{ens}</code>
             </td>
-            <td>On-chain identity; resolves via Ethereum ENS.</td>
+            <td>On-chain identity; resolves via Base (ENS-compatible reads).</td>
           </tr>
           <tr>
             <td>Profile page</td>
@@ -67,7 +67,7 @@ export default function UsingGridzPage() {
         <li>
           <strong>Sign &amp; publish to ENS</strong> — your wallet signs only <em>changed</em> cells plus
           the grid root (unchanged fields reuse prior attestations), then sends EAS attestations and
-          resolver links on Ethereum (you pay gas, ~2 txs per changed field). When done, you&apos;ll
+          resolver links on Base (you pay gas, ~2 txs per changed field). When done, you&apos;ll
           see an <strong>On-chain</strong> badge and your profile is public everywhere.
         </li>
       </ul>
@@ -214,7 +214,7 @@ export default function UsingGridzPage() {
       <ul>
         <li>Fetch the JSON API (<code>GET /api/profile/…</code>)</li>
         <li>Run offline <code>verifyGrid()</code> in TypeScript or Python</li>
-        <li>Cross-check EAS attestation UIDs on <a href="https://easscan.org" target="_blank" rel="noreferrer">easscan.org</a></li>
+        <li>Cross-check EAS attestation UIDs on <a href="https://base.easscan.org" target="_blank" rel="noreferrer">easscan.org</a></li>
       </ul>
       <p>
         Full details: <a href="/docs/verification">Verification</a>.

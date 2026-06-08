@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 import { LocalEip712Signer, buildGrid } from "@gridz/core";
 import { createPublicClient, createWalletClient, getAddress, http, type Hex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { mainnet, sepolia } from "viem/chains";
+import { gridzChainForId } from "../lib/gridzChain";
 import { DEFAULT_THEME } from "../lib/defaultTheme";
 import { profileCellsFromFields } from "../lib/buildProfileGrid";
 import { publishGridViaEas } from "../lib/publishEas";
@@ -45,9 +45,6 @@ const cellSchema = process.env.CELL_SCHEMA as Hex | undefined;
 const rpc = process.env.GRIDZ_RPC_URL ?? "https://ethereum.publicnode.com";
 const chainId = Number(process.env.GRIDZ_CHAIN_ID ?? "1");
 
-function chainForId(id: number) {
-  return id === 11155111 ? sepolia : mainnet;
-}
 
 async function main() {
   if (!signerKey?.startsWith("0x")) {
@@ -65,7 +62,7 @@ async function main() {
 
   const resolver = getAddress(resolverRaw);
   const easAddress = getAddress(easRaw);
-  const chain = chainForId(chainId);
+  const chain = gridzChainForId(chainId);
 
   const signer = LocalEip712Signer.fromPrivateKey(signerKey, chainId);
   const did = await signer.did();

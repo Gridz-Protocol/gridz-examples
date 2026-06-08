@@ -100,9 +100,9 @@ export function PublishProgress({
           <div className="publish-progress__head">
             <span className="publish-progress__spinner" aria-hidden />
             <div>
-              <p className="publish-progress__title">Publishing to Ethereum</p>
+              <p className="publish-progress__title">Publishing on Base</p>
               <p className="publish-progress__sub">
-                Confirm ~{cellCount * 2} Ethereum transaction{cellCount * 2 === 1 ? "" : "s"} in your wallet
+                Confirm ~{cellCount * 2} Base transaction{cellCount * 2 === 1 ? "" : "s"} in your wallet
                 ({cellCount} EAS attest{cellCount === 1 ? "" : "s"} + {cellCount} resolver link
                 {cellCount === 1 ? "" : "s"}). You pay gas. Keep this tab open.
               </p>

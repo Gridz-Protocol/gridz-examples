@@ -10,7 +10,7 @@
 import { readFileSync, existsSync } from "fs";
 import { createPublicClient, createWalletClient, getAddress, http, namehash } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { mainnet } from "viem/chains";
+import { gridzChainForId } from "../lib/gridzChain";
 import type { Hex } from "viem";
 
 function loadEnv(path: string): Record<string, string> {
@@ -48,7 +48,11 @@ async function main() {
   const env = { ...loadEnv("../../.env"), ...loadEnv(".env.local") };
   const key = env.REGISTRAR_PRIVATE_KEY ?? env.DEPLOYER_PRIVATE_KEY;
   const resolver = env.GRIDZ_RESOLVER as Hex | undefined;
-  const rpc = env.GRIDZ_RPC_URL ?? "https://ethereum.publicnode.com";
+  const chainId = Number(env.GRIDZ_CHAIN_ID ?? "1");
+  const chain = gridzChainForId(chainId);
+  const rpc =
+    env.GRIDZ_RPC_URL ??
+    (chainId === 8453 ? "https://base.publicnode.com" : "https://ethereum.publicnode.com");
   if (!key?.startsWith("0x") || !resolver?.startsWith("0x")) {
     console.error("Set REGISTRAR_PRIVATE_KEY and GRIDZ_RESOLVER in .env");
     process.exit(1);
@@ -56,8 +60,8 @@ async function main() {
 
   const links = JSON.parse(readFileSync(linksPath, "utf8")) as { key: string; uid: Hex }[];
   const account = privateKeyToAccount(key as Hex);
-  const publicClient = createPublicClient({ chain: mainnet, transport: http(rpc) });
-  const walletClient = createWalletClient({ account, chain: mainnet, transport: http(rpc) });
+  const publicClient = createPublicClient({ chain, transport: http(rpc) });
+  const walletClient = createWalletClient({ account, chain, transport: http(rpc) });
   const node = namehash(ensName);
   const resolverAddr = getAddress(resolver);
 
@@ -70,7 +74,7 @@ async function main() {
     console.log(`  ${i + 1}/${links.length} ${cellKey} → ${uid.slice(0, 10)}…`);
     const hash = await walletClient.writeContract({
       account,
-      chain: mainnet,
+      chain,
       address: resolverAddr,
       abi: RESOLVER_ABI,
       functionName: "setCellAttestation",

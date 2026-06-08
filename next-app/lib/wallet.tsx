@@ -21,6 +21,7 @@ export interface PreparedWallet {
 function chainLabel(chainId: number): string {
   if (chainId === 1) return "Ethereum Mainnet";
   if (chainId === 11155111) return "Sepolia";
+  if (chainId === 8453) return "Base";
   return `Chain ${chainId}`;
 }
 

@@ -1,17 +1,13 @@
 import { NextResponse } from "next/server";
 
-// Six mainnet txs (EAS attest + resolver link per cell) can take 1–2 minutes.
+// EAS attest + resolver link per cell can take 1–2 minutes on any chain.
 export const maxDuration = 300;
 import type { Grid, Hex } from "@gridz/core";
 import { createPublicClient, createWalletClient, getAddress, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { mainnet, sepolia } from "viem/chains";
 import { publishGridViaEas } from "../../../lib/publishEas";
 import { loadGrid } from "../../../lib/loadGrid";
-
-function chainForId(chainId: number) {
-  return chainId === 11155111 ? sepolia : mainnet;
-}
+import { gridzChainForId } from "../../../lib/gridzChain";
 
 export async function POST(request: Request) {
   const registrarKey = process.env.REGISTRAR_PRIVATE_KEY ?? process.env.DEPLOYER_PRIVATE_KEY;
@@ -56,7 +52,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const chain = chainForId(chainId);
+    const chain = gridzChainForId(chainId);
     const account = privateKeyToAccount(registrarKey as Hex);
     const publicClient = createPublicClient({ chain, transport: http(rpc) });
     const walletClient = createWalletClient({ account, chain, transport: http(rpc) });

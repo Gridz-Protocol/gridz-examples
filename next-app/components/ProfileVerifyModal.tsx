@@ -56,7 +56,7 @@ export function ProfileVerifyModal({ subject, isDraft = false, onClose }: Profil
               Query &amp; verify on-chain
             </h2>
             <p className="verify-modal__sub">
-              Profile <code>{subject}</code> — read from Ethereum / ENS without trusting this page.
+              Profile <code>{subject}</code> — read from Base / ENS without trusting this page.
             </p>
           </div>
           <button type="button" className="verify-modal__close" onClick={onClose} aria-label="Close">
@@ -116,13 +116,13 @@ export function ProfileVerifyModal({ subject, isDraft = false, onClose }: Profil
         </section>
 
         <section className="verify-modal__section">
-          <h3>3. Cross-check on Ethereum</h3>
+          <h3>3. Cross-check on Base</h3>
           <p>
             Published cells link to{" "}
-            <a href="https://easscan.org" target="_blank" rel="noreferrer noopener">
+            <a href="https://base.easscan.org" target="_blank" rel="noreferrer noopener">
               EAS attestations
             </a>{" "}
-            on mainnet. Copy a cell&apos;s <code>attestation.uid</code> from the JSON and look it up on
+            on Base. Copy a cell&apos;s <code>attestation.uid</code> from the JSON and look it up on
             easscan. The GridzResolver also serves values via standard ENS <code>text()</code> reads for
             advanced integrations.
           </p>

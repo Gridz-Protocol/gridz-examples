@@ -1,7 +1,7 @@
 import type { Grid, Hex } from "@gridz/core";
 import { EnsSink, type EnsBackend } from "@gridz/sinks";
 import { createPublicClient, http, type Chain } from "viem";
-import { mainnet, sepolia } from "viem/chains";
+import { gridzChainForId } from "./gridzChain";
 import { isEnsSubject } from "./ensNames";
 import { loadGridFromResolver } from "./loadGridResolver";
 
@@ -21,17 +21,16 @@ class ReadOnlyEnsBackend implements EnsBackend {
   }
 }
 
-function chainForId(chainId: number): Chain {
-  return chainId === 11155111 ? sepolia : mainnet;
-}
 
 export async function loadGrid(subject: string): Promise<Grid | null> {
   if (!isEnsSubject(subject)) return null;
 
-  const rpc = process.env.GRIDZ_RPC_URL ?? "https://ethereum.publicnode.com";
   const chainId = Number(process.env.GRIDZ_CHAIN_ID ?? "1");
+  const rpc =
+    process.env.GRIDZ_RPC_URL ??
+    (chainId === 8453 ? "https://base.publicnode.com" : "https://ethereum.publicnode.com");
   const resolver = process.env.GRIDZ_RESOLVER as Hex | undefined;
-  const client = createPublicClient({ chain: chainForId(chainId), transport: http(rpc) });
+  const client = createPublicClient({ chain: gridzChainForId(chainId), transport: http(rpc) });
 
   if (resolver?.startsWith("0x")) {
     const fromResolver = await loadGridFromResolver(client, subject, resolver);
