@@ -14,6 +14,11 @@ import {
 const ENS_BASE = process.env.NEXT_PUBLIC_GRIDZ_ENS_BASE ?? "gridz.eth";
 const SITE_DOMAIN = process.env.NEXT_PUBLIC_SITE_DOMAIN ?? "gridz.bio";
 
+function hasUnpublishedDraft(subject: string): boolean {
+  const bundle = loadDraftBundle(subject);
+  return bundle != null && !bundleIsPublished(bundle);
+}
+
 type LookupState =
   | { phase: "idle" }
   | { phase: "loading" }
@@ -208,7 +213,7 @@ export function ProfileLookup({ autoFocus, showClaimHint = true }: ProfileLookup
         <div className="profile-lookup__result profile-lookup__result--missing">
           <p>
             No published profile for <code>{state.subject}</code> yet.
-            {loadDraftBundle(state.subject)
+            {hasUnpublishedDraft(state.subject)
               ? " You have a local draft in this browser — open Edit to continue."
               : null}
           </p>
@@ -221,7 +226,7 @@ export function ProfileLookup({ autoFocus, showClaimHint = true }: ProfileLookup
               >
                 Claim {state.subject.split(".")[0]}
               </button>
-              {loadDraftBundle(state.subject) ? (
+              {hasUnpublishedDraft(state.subject) ? (
                 <button
                   type="button"
                   className="site-btn"
