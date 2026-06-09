@@ -67,14 +67,14 @@ describe("incrementalProfileGrid", () => {
       url: "https://gridz.bio",
     });
     expect(canReuseCell(drafts[0]!, baseline.cells[0], DID)).toBe(true);
-    expect(countCellsToSign(drafts, baseline, DID)).toBe(2);
+    expect(countCellsToSign(drafts, baseline, DID)).toBe(3);
   });
 
   it("requires new signatures when a value changes", () => {
     const baseline = grid([cell("alias", "Kevin")]);
     const drafts = profileCellsFromFields({ ...DEFAULT_PROFILE_FIELDS, alias: "Kev" });
     expect(canReuseCell(drafts[0]!, baseline.cells[0], DID)).toBe(false);
-    expect(countCellsToSign(drafts, baseline, DID)).toBe(3);
+    expect(countCellsToSign(drafts, baseline, DID)).toBe(4);
   });
 
   it("counts only changed cells for publish", () => {

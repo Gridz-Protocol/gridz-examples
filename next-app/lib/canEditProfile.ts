@@ -1,30 +1,26 @@
 import type { Grid } from "@gridz/core";
 import type { DraftBundle } from "./drafts";
-import { isProfileOwner } from "./isProfileOwner";
+import {
+  attesterAddressFromGrid,
+  isProfileOwner,
+  ownerDidFromGrid,
+  walletDid,
+} from "./profileOwner";
 
-/** On-chain cells attested only by the gridz registrar — incomplete server publish, still claimable. */
+/** True when on-chain cells are registrar-attested and no wallet owner is recorded yet. */
 export function isRegistrarOnlyPublish(
   grid: Grid,
   chainId: number,
   registrarAddress?: string | null,
 ): boolean {
+  if (ownerDidFromGrid(grid, chainId, registrarAddress)) return false;
   if (!registrarAddress?.startsWith("0x")) return false;
   const registrarDid = `did:pkh:eip155:${chainId}:${registrarAddress.toLowerCase()}`;
-  const onChain = grid.cells.filter((c) => c.attestation?.format === "eas-onchain");
+  const onChain = grid.cells.filter(
+    (c) => c.attestation?.format === "eas-onchain" && c.key !== "gridz.owner",
+  );
   if (onChain.length === 0) return false;
   return onChain.every((c) => c.attestation?.attester?.toLowerCase() === registrarDid);
-}
-
-function attesterAddressFromGrid(grid: Grid, chainId: number): string | null {
-  const prefix = `did:pkh:eip155:${chainId}:`.toLowerCase();
-  for (const cell of grid.cells) {
-    const attester = cell.attestation?.attester?.toLowerCase();
-    if (attester?.startsWith(prefix)) {
-      const addr = attester.slice(prefix.length);
-      return addr.startsWith("0x") ? addr : null;
-    }
-  }
-  return null;
 }
 
 /** Whether the visitor may open the profile editor (claim, edit, publish). */
@@ -35,13 +31,16 @@ export function canEditProfile(params: {
   chainId: number;
   registrarAddress?: string | null;
 }): boolean {
-  const { chainGrid, walletAddress, chainId, registrarAddress } = params;
+  const { chainGrid, draftBundle, walletAddress, chainId, registrarAddress } = params;
 
   if (!chainGrid) return true;
 
-  if (isRegistrarOnlyPublish(chainGrid, chainId, registrarAddress)) return true;
+  if (isProfileOwner(chainGrid, walletAddress, chainId, registrarAddress)) return true;
 
-  return isProfileOwner(chainGrid, walletAddress, chainId);
+  const signed = draftBundle?.signedBaseline;
+  if (signed && isProfileOwner(signed, walletAddress, chainId, registrarAddress)) return true;
+
+  return false;
 }
 
 /** Whether a signed grid may be published over the current on-chain baseline. */
@@ -55,10 +54,16 @@ export function canPublishProfile(params: {
 
   if (!chainGrid) return true;
 
-  if (isRegistrarOnlyPublish(chainGrid, chainId, registrarAddress)) return true;
-
   const signer = attesterAddressFromGrid(incomingGrid, chainId);
-  return signer != null && isProfileOwner(chainGrid, signer, chainId);
+  if (!signer) return false;
+
+  const owner = ownerDidFromGrid(chainGrid, chainId, registrarAddress);
+  if (!owner) {
+    const incomingOwner = ownerDidFromGrid(incomingGrid, chainId, registrarAddress);
+    return incomingOwner === walletDid(chainId, signer);
+  }
+
+  return isProfileOwner(chainGrid, signer, chainId, registrarAddress);
 }
 
 /** True when the connected wallet attested the on-chain or locally signed grid. */
@@ -67,10 +72,11 @@ export function isProfileSigner(params: {
   draftBundle: DraftBundle | null;
   walletAddress: string | null | undefined;
   chainId: number;
+  registrarAddress?: string | null;
 }): boolean {
-  const { chainGrid, draftBundle, walletAddress, chainId } = params;
+  const { chainGrid, draftBundle, walletAddress, chainId, registrarAddress } = params;
   const signed = draftBundle?.signedBaseline;
-  if (signed) return isProfileOwner(signed, walletAddress, chainId);
-  if (chainGrid) return isProfileOwner(chainGrid, walletAddress, chainId);
+  if (signed && isProfileOwner(signed, walletAddress, chainId, registrarAddress)) return true;
+  if (chainGrid) return isProfileOwner(chainGrid, walletAddress, chainId, registrarAddress);
   return false;
 }

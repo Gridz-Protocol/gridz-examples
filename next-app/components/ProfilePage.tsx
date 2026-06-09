@@ -14,7 +14,7 @@ import { fieldsFromGrid } from "../lib/profileFields";
 import { rememberProfile } from "../lib/recentProfiles";
 import { bioUrlForEns } from "../lib/subjectFromHost";
 import { isDemoProfile } from "../lib/demoProfile";
-import { canEditProfile, isProfileSigner, isRegistrarOnlyPublish } from "../lib/canEditProfile";
+import { canEditProfile, isProfileSigner } from "../lib/canEditProfile";
 import { useWallet } from "../lib/wallet";
 
 export interface ProfilePageProps {
@@ -81,8 +81,6 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
 
   const demo = isDemoProfile(subject);
   const registrarAddress = process.env.NEXT_PUBLIC_REGISTRAR_ADDRESS ?? "";
-  const incompleteClaim =
-    chainGrid != null && isRegistrarOnlyPublish(chainGrid, targetChainId, registrarAddress);
   const canEdit =
     !demo &&
     canEditProfile({
@@ -97,6 +95,7 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
     draftBundle,
     walletAddress: address,
     chainId: targetChainId,
+    registrarAddress,
   });
 
   useEffect(() => {
@@ -145,11 +144,7 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
             </button>
             {canEdit ? (
               <button type="button" className="site-btn site-btn--primary" onClick={() => setEditing((v) => !v)}>
-                {editing
-                  ? "Close editor"
-                  : source === "none" || incompleteClaim
-                    ? "Claim profile"
-                    : "Edit profile"}
+                {editing ? "Close editor" : source === "none" ? "Claim profile" : "Edit profile"}
               </button>
             ) : null}
           </div>
@@ -166,7 +161,7 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
               initialFields={draftBundle?.fields ?? null}
               onSaved={onSaved}
               onPreview={onPreview}
-              isClaim={source === "none" || incompleteClaim}
+              isClaim={source === "none"}
             />
           </>
         ) : null}

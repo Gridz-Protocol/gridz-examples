@@ -16,6 +16,7 @@ import type { WalletClient } from "viem";
 import { DEFAULT_THEME } from "./defaultTheme";
 import type { ProfileEditorState } from "./profileFields";
 import { profileCellsFromFields } from "./buildProfileGrid";
+import { OWNER_KEY } from "./profileOwner";
 
 function walletSigner(walletClient: WalletClient, chainId: number, address: Hex): Signer {
   return {
@@ -67,6 +68,15 @@ export function countCellsToSign(
   for (const draft of drafts) {
     if (!canReuseCell(draft, byKey.get(draft.key), attesterDid)) n += 1;
   }
+  const ownerDraft: CellDraft = {
+    id: OWNER_KEY,
+    key: OWNER_KEY,
+    value: attesterDid,
+    position: { x: 0, y: 0, w: 0, h: 0 },
+    size: "0x0",
+    is_visible: false,
+  };
+  if (!canReuseCell(ownerDraft, byKey.get(OWNER_KEY), attesterDid)) n += 1;
   return n + 1;
 }
 
@@ -87,7 +97,7 @@ export function countFieldsToPublish(
   chainBaseline: Grid | null | undefined,
 ): number {
   const drafts = profileCellsFromFields(fields);
-  if (!chainBaseline) return drafts.length;
+  if (!chainBaseline) return drafts.length + 1;
   const byKey = baselineCellByKey(chainBaseline);
   const algo = algoForFormat("eip712-raw");
   let n = 0;
@@ -101,6 +111,7 @@ export function countFieldsToPublish(
     const next = valueHash(algo, draft.value);
     if (!prev || prev !== next) n += 1;
   }
+  if (!byKey.has(OWNER_KEY)) n += 1;
   return n;
 }
 
@@ -125,6 +136,46 @@ export interface IncrementalBuildResult {
   grid: Grid;
   signedCellCount: number;
   reusedCellCount: number;
+}
+
+async function ensureOwnerCell(
+  cells: Cell[],
+  byKey: Map<string, Cell>,
+  signer: Signer,
+  subjectDid: string,
+  chainId: number,
+  resolver: Hex,
+): Promise<{ signed: number; reused: number }> {
+  const ownerDraft: CellDraft = {
+    id: OWNER_KEY,
+    key: OWNER_KEY,
+    value: subjectDid,
+    position: { x: 0, y: 0, w: 0, h: 0 },
+    size: "0x0",
+    is_visible: false,
+  };
+  const existing = byKey.get(OWNER_KEY);
+  if (canReuseCell(ownerDraft, existing, subjectDid) && existing) {
+    cells.push(existing);
+    return { signed: 0, reused: 1 };
+  }
+  const attestation = await buildCellAttestation(signer, {
+    subjectDid,
+    key: OWNER_KEY,
+    value: subjectDid,
+    chainId,
+    verifyingContract: resolver,
+  });
+  cells.push({
+    id: OWNER_KEY,
+    key: OWNER_KEY,
+    value: subjectDid,
+    position: { x: 0, y: 0, w: 0, h: 0 },
+    size: "0x0",
+    is_visible: false,
+    attestation,
+  });
+  return { signed: 1, reused: 0 };
 }
 
 export async function buildProfileGridIncremental(
@@ -187,6 +238,10 @@ export async function buildProfileGridIncremental(
     });
     signedCellCount += 1;
   }
+
+  const ownerCell = await ensureOwnerCell(cells, byKey, signer, subjectDid, chainId, resolver);
+  signedCellCount += ownerCell.signed;
+  reusedCellCount += ownerCell.reused;
 
   const algo = algoForFormat(signer.format());
   const root = merkleRoot(

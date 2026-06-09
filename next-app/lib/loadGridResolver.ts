@@ -193,7 +193,7 @@ export async function loadGridFromResolver(
       ...(widget_type ? { widget_type } : {}),
       position: { x: pos.x, y: pos.y, w: pos.w, h: pos.h },
       size: pos.size,
-      is_visible: !key.startsWith("gridz.att["),
+      is_visible: !key.startsWith("gridz.att[") && key !== "gridz.owner",
       attestation: {
         format,
         uid,
