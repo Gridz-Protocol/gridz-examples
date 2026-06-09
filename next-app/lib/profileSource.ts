@@ -6,7 +6,7 @@ import { mergeFieldPreview } from "./previewGrid";
 export type ProfileSource = "chain" | "draft" | "none";
 
 /** Last successful wallet publish (EIP-712) or live EAS cells — not an unsigned preview. */
-function hasPublishedBaseline(grid: Grid | null): boolean {
+export function hasPublishedBaseline(grid: Grid | null): boolean {
   if (!grid) return false;
   const ZERO = `0x${"0".repeat(64)}`;
   return grid.cells.some((c) => {
@@ -18,9 +18,16 @@ function hasPublishedBaseline(grid: Grid | null): boolean {
   });
 }
 
-function fieldsMatchGrid(fields: DraftBundle["fields"], grid: Grid | null): boolean {
+export function fieldsMatchGrid(fields: DraftBundle["fields"], grid: Grid | null): boolean {
   if (!grid) return false;
   return JSON.stringify(fields) === JSON.stringify(fieldsFromGrid(grid));
+}
+
+/** True when the bundle represents a successfully signed/published state, not a pending draft. */
+export function bundleIsPublished(bundle: DraftBundle | null): boolean {
+  if (!bundle) return false;
+  if (!hasPublishedBaseline(bundle.signedBaseline)) return false;
+  return fieldsMatchGrid(bundle.fields, bundle.signedBaseline);
 }
 
 function hasUnpublishedFieldEdits(

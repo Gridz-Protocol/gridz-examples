@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { loadDraftBundle } from "../lib/drafts";
+import { bundleIsPublished } from "../lib/profileSource";
 import { rememberProfile } from "../lib/recentProfiles";
 import {
   type ProfileSearchMatch,
@@ -89,11 +90,12 @@ export function ProfileLookup({ autoFocus, showClaimHint = true }: ProfileLookup
         } else {
           const bundle = loadDraftBundle(subject);
           if (bundle) {
+            const isActualDraft = !bundleIsPublished(bundle);
             setState({
               phase: "found",
               subject,
               displayName: bundle.fields.alias.trim() || (subject.split(".")[0] ?? subject),
-              isDraft: true,
+              isDraft: isActualDraft,
             });
           } else {
             setState({ phase: "missing", subject });

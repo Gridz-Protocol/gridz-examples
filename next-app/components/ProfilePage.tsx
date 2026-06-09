@@ -9,7 +9,8 @@ import { ProfileVerifyModal } from "./ProfileVerifyModal";
 import { SpritzProfile } from "./SpritzProfile";
 import { profileApiUrl } from "../lib/profileVerifyGuide";
 import { loadDraftBundle } from "../lib/drafts";
-import { resolveProfileSource } from "../lib/profileSource";
+import { resolveProfileSource, fieldsMatchGrid } from "../lib/profileSource";
+import { fieldsFromGrid } from "../lib/profileFields";
 import { rememberProfile } from "../lib/recentProfiles";
 import { bioUrlForEns } from "../lib/subjectFromHost";
 import { isDemoProfile } from "../lib/demoProfile";
@@ -52,10 +53,17 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
     setSource(view.source);
   }, [chainGrid, subject]);
 
-  const onPreview = useCallback((g: Grid) => {
-    setGrid(g);
-    setSource((s) => (s === "none" ? s : "draft"));
-  }, []);
+  const onPreview = useCallback(
+    (g: Grid) => {
+      setGrid(g);
+      setSource((s) => {
+        if (s === "none") return s;
+        if (chainGrid && fieldsMatchGrid(fieldsFromGrid(g), chainGrid)) return "chain";
+        return "draft";
+      });
+    },
+    [chainGrid],
+  );
 
   const onSaved = useCallback(
     (g: Grid, src: "draft" | "chain") => {

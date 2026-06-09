@@ -1,5 +1,6 @@
 import { DEMO_PROFILE_SUBJECT } from "./demoProfile";
 import { listDraftSubjects } from "./listDrafts";
+import { bundleIsPublished } from "./profileSource";
 import { listRecentProfiles } from "./recentProfiles";
 import { toEnsSubname } from "./ensNames";
 
@@ -98,7 +99,7 @@ export async function enrichProfileMatch(
     const { loadDraftBundle } = await import("./drafts");
     const bundle = loadDraftBundle(subject);
     if (bundle) {
-      status = "draft";
+      status = bundleIsPublished(bundle) ? "published" : "draft";
       name = bundle.fields.alias.trim() || name;
     }
   }
