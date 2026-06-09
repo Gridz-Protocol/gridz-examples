@@ -27,7 +27,7 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
   const router = useRouter();
   const { address, targetChainId } = useWallet();
   const publishedRef = useRef(false);
-  const [editing, setEditing] = useState(startClaiming && !chainGrid);
+  const [editing, setEditing] = useState(false);
   const [draftBundle, setDraftBundle] = useState(() => loadDraftBundle(subject));
   const initialView = resolveProfileSource(chainGrid, draftBundle, subject);
   const [grid, setGrid] = useState<Grid | null>(initialView.grid);
@@ -102,6 +102,10 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
   useEffect(() => {
     if (!canEdit && editing) setEditing(false);
   }, [canEdit, editing]);
+
+  useEffect(() => {
+    if (startClaiming && canEdit && !chainGrid) setEditing(true);
+  }, [startClaiming, canEdit, chainGrid]);
 
   return (
     <>
@@ -192,9 +196,11 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
               <button type="button" className="site-btn" onClick={() => setVerifyOpen(true)}>
                 Verify profile
               </button>
-              <button type="button" className="site-btn site-btn--primary" onClick={() => setEditing(true)}>
-                Claim this profile
-              </button>
+              {canEdit ? (
+                <button type="button" className="site-btn site-btn--primary" onClick={() => setEditing(true)}>
+                  Claim this profile
+                </button>
+              ) : null}
             </div>
             <p style={{ marginTop: 16, fontSize: 14 }}>
               Or start from <a href="/claim">gridz.bio/claim</a> for the full walkthrough.

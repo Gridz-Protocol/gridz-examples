@@ -198,13 +198,15 @@ export function ProfileLookup({ autoFocus, showClaimHint = true }: ProfileLookup
             >
               View profile
             </button>
-            <button
-              type="button"
-              className="site-btn"
-              onClick={() => router.push(`/${encodeURIComponent(state.subject)}?claim=1`)}
-            >
-              Edit
-            </button>
+            {state.isDraft ? (
+              <button
+                type="button"
+                className="site-btn"
+                onClick={() => router.push(`/${encodeURIComponent(state.subject)}?claim=1`)}
+              >
+                Edit
+              </button>
+            ) : null}
           </div>
         </div>
       ) : null}

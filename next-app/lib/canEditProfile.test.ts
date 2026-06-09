@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { Grid } from "@gridz/core";
-import { canEditProfile, isProfileSigner } from "./canEditProfile";
+import { canEditProfile, canPublishProfile, isProfileSigner } from "./canEditProfile";
 import type { DraftBundle } from "./drafts";
+import { DEFAULT_PROFILE_FIELDS } from "./profileFields";
 
 const WALLET = "0x3BB765B970B7Ca503dc26573f9E07cA1E88A218D";
 const REGISTRAR = "0xEBE4ceb499Ad95DC1e5662E3a223Ec8cc0a555d9";
-const CHAIN = 1;
+const CHAIN = 8453;
 
 function gridWithAttester(attester: string): Grid {
   return {
@@ -24,7 +25,7 @@ function gridWithAttester(attester: string): Grid {
           format: "eas-onchain",
           uid: "0x" + "a".repeat(64),
           uri: "eas://x",
-          attester: `did:pkh:eip155:1:${attester.toLowerCase()}`,
+          attester: `did:pkh:eip155:${CHAIN}:${attester.toLowerCase()}`,
           iat: "2026-01-01T00:00:00.000Z",
           value_hash: "0x" + "0".repeat(64),
         },
@@ -41,15 +42,7 @@ function gridWithAttester(attester: string): Grid {
   };
 }
 
-const draftFields = {
-  displayName: "1Claw",
-  bio: "",
-  url: "",
-  avatar: "",
-  twitter: "",
-  github: "",
-  widgets: [],
-} as DraftBundle["fields"];
+const draftFields = { ...DEFAULT_PROFILE_FIELDS, alias: "1Claw" };
 
 describe("canEditProfile", () => {
   it("allows claim when nothing is on-chain", () => {
@@ -65,6 +58,25 @@ describe("canEditProfile", () => {
     ).toBe(false);
   });
 
+  it("blocks strangers with a stale local draft on a fully published profile", () => {
+    const chainGrid = gridWithAttester(WALLET);
+    const draftBundle: DraftBundle = {
+      version: 2,
+      fields: draftFields,
+      signedBaseline: null,
+      savedAt: new Date().toISOString(),
+    };
+    expect(
+      canEditProfile({
+        chainGrid,
+        draftBundle,
+        walletAddress: REGISTRAR,
+        chainId: CHAIN,
+        registrarAddress: REGISTRAR,
+      }),
+    ).toBe(false);
+  });
+
   it("allows edit when this browser has a local draft despite registrar on-chain attester", () => {
     const chainGrid = gridWithAttester(REGISTRAR);
     const draftBundle: DraftBundle = {
@@ -74,7 +86,13 @@ describe("canEditProfile", () => {
       savedAt: new Date().toISOString(),
     };
     expect(
-      canEditProfile({ chainGrid, draftBundle, walletAddress: WALLET, chainId: CHAIN }),
+      canEditProfile({
+        chainGrid,
+        draftBundle,
+        walletAddress: WALLET,
+        chainId: CHAIN,
+        registrarAddress: REGISTRAR,
+      }),
     ).toBe(true);
   });
 
@@ -82,6 +100,59 @@ describe("canEditProfile", () => {
     const chainGrid = gridWithAttester(WALLET);
     expect(
       canEditProfile({ chainGrid, draftBundle: null, walletAddress: WALLET, chainId: CHAIN }),
+    ).toBe(true);
+  });
+
+  it("allows reclaim when on-chain cells are registrar-only (no local draft)", () => {
+    const chainGrid = gridWithAttester(REGISTRAR);
+    expect(
+      canEditProfile({
+        chainGrid,
+        draftBundle: null,
+        walletAddress: WALLET,
+        chainId: CHAIN,
+        registrarAddress: REGISTRAR,
+      }),
+    ).toBe(true);
+  });
+});
+
+describe("canPublishProfile", () => {
+  it("allows first claim when nothing is on-chain", () => {
+    const incoming = gridWithAttester(WALLET);
+    expect(
+      canPublishProfile({
+        chainGrid: null,
+        incomingGrid: incoming,
+        chainId: CHAIN,
+        registrarAddress: REGISTRAR,
+      }),
+    ).toBe(true);
+  });
+
+  it("blocks stranger-signed publish over an owned profile", () => {
+    const chainGrid = gridWithAttester(WALLET);
+    const incoming = gridWithAttester(REGISTRAR);
+    expect(
+      canPublishProfile({
+        chainGrid,
+        incomingGrid: incoming,
+        chainId: CHAIN,
+        registrarAddress: REGISTRAR,
+      }),
+    ).toBe(false);
+  });
+
+  it("allows owner-signed publish over their profile", () => {
+    const chainGrid = gridWithAttester(WALLET);
+    const incoming = gridWithAttester(WALLET);
+    expect(
+      canPublishProfile({
+        chainGrid,
+        incomingGrid: incoming,
+        chainId: CHAIN,
+        registrarAddress: REGISTRAR,
+      }),
     ).toBe(true);
   });
 });
@@ -102,16 +173,3 @@ describe("isProfileSigner", () => {
     );
   });
 });
-
-  it("allows reclaim when on-chain cells are registrar-only (no local draft)", () => {
-    const chainGrid = gridWithAttester(REGISTRAR);
-    expect(
-      canEditProfile({
-        chainGrid,
-        draftBundle: null,
-        walletAddress: WALLET,
-        chainId: CHAIN,
-        registrarAddress: REGISTRAR,
-      }),
-    ).toBe(true);
-  });

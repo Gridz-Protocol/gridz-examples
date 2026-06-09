@@ -9,6 +9,7 @@ import { publishGridViaEas } from "../../../lib/publishEas";
 import { loadGrid } from "../../../lib/loadGrid";
 import { gridzChainForId } from "../../../lib/gridzChain";
 import { friendlyPublishError } from "../../../lib/publishTx";
+import { canPublishProfile } from "../../../lib/canEditProfile";
 
 export async function POST(request: Request) {
   const registrarKey = process.env.REGISTRAR_PRIVATE_KEY ?? process.env.DEPLOYER_PRIVATE_KEY;
@@ -73,6 +74,21 @@ export async function POST(request: Request) {
     }
 
     const chainBaseline = await loadGrid(ensName);
+    const registrarAddress = account.address;
+    if (
+      !canPublishProfile({
+        chainGrid: chainBaseline,
+        incomingGrid: grid,
+        chainId,
+        registrarAddress,
+      })
+    ) {
+      return NextResponse.json(
+        { ok: false, error: "This profile is already owned by another wallet." },
+        { status: 403 },
+      );
+    }
+
     const { txCount, publishedCellCount, skippedCellCount } = await publishGridViaEas(grid, ensName, {
       easAddress,
       cellSchema,
