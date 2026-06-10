@@ -8,8 +8,8 @@ import { ProfileEditor } from "./ProfileEditor";
 import { ProfileVerifyModal } from "./ProfileVerifyModal";
 import { SpritzProfile } from "./SpritzProfile";
 import { profileApiUrl } from "../lib/profileVerifyGuide";
-import { loadDraftBundle } from "../lib/drafts";
-import { resolveProfileSource, fieldsMatchGrid } from "../lib/profileSource";
+import { loadDraftBundle, saveSignedBaseline } from "../lib/drafts";
+import { resolveProfileSource, fieldsMatchGrid, hasUnpublishedFieldEdits } from "../lib/profileSource";
 import { fieldsFromGrid } from "../lib/profileFields";
 import { rememberProfile } from "../lib/recentProfiles";
 import { bioUrlForEns } from "../lib/subjectFromHost";
@@ -47,8 +47,14 @@ export function ProfilePage({ subject, chainGrid, startClaiming = false }: Profi
       return;
     }
     const bundle = loadDraftBundle(subject);
-    setDraftBundle(bundle);
-    const view = resolveProfileSource(chainGrid, bundle, subject);
+    if (bundle && chainGrid && !hasUnpublishedFieldEdits(bundle.fields, chainGrid, bundle.signedBaseline, subject)) {
+      if (!fieldsMatchGrid(bundle.fields, chainGrid)) {
+        saveSignedBaseline(subject, fieldsFromGrid(chainGrid), chainGrid);
+      }
+    }
+    const fresh = loadDraftBundle(subject);
+    setDraftBundle(fresh);
+    const view = resolveProfileSource(chainGrid, fresh, subject);
     setGrid(view.grid);
     setSource(view.source);
   }, [chainGrid, subject]);

@@ -165,3 +165,56 @@ describe("bundleIsPublished", () => {
     expect(bundleIsPublished(null)).toBe(false);
   });
 });
+
+describe("resolveProfileSource stale localStorage", () => {
+  it("shows on-chain when fields lag chain but signed baseline matches (e.g. missing description in fields)", () => {
+    const chain = chainGrid();
+    const chainWithDesc: Grid = {
+      ...chain,
+      cells: [
+        ...chain.cells,
+        {
+          id: "description",
+          key: "description",
+          value: "Bio text",
+          position: { x: 1, y: 0, w: 2, h: 1 },
+          size: "2x1",
+          is_visible: true,
+          attestation: {
+            format: "eas-onchain",
+            uid: "0x5555555555555555555555555555555555555555555555555555555555555555",
+            uri: "eas://8453/0x5555",
+            attester: "did:pkh:eip155:8453:0xabc",
+            iat: "2025-01-01T00:00:00Z",
+            value_hash: "0x6666666666666666666666666666666666666666666666666666666666666666",
+          },
+        },
+      ],
+    };
+    const bundle: DraftBundle = {
+      version: 2,
+      fields: { ...DEFAULT_PROFILE_FIELDS, alias: "Kevin", description: "" },
+      signedBaseline: chainWithDesc,
+      savedAt: new Date().toISOString(),
+    };
+    const { source } = resolveProfileSource(chainWithDesc, bundle, ENS);
+    expect(source).toBe("chain");
+  });
+
+  it("shows on-chain when widget toggles are enabled locally but not published", () => {
+    const chain = chainGrid();
+    const bundle: DraftBundle = {
+      version: 2,
+      fields: {
+        ...DEFAULT_PROFILE_FIELDS,
+        alias: "Kevin",
+        statsEnabled: true,
+        pollEnabled: true,
+      },
+      signedBaseline: chain,
+      savedAt: new Date().toISOString(),
+    };
+    const { source } = resolveProfileSource(chain, bundle, ENS);
+    expect(source).toBe("chain");
+  });
+});

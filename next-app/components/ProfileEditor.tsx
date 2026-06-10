@@ -149,7 +149,7 @@ export function ProfileEditor({
         return;
       }
 
-      saveSignedBaseline(ensName, fields, grid);
+      saveSignedBaseline(ensName, fieldsFromGrid(grid), grid);
       onSaved(grid, "chain");
       setPublishUi({
         phase: "success",
